@@ -1,0 +1,9 @@
+<div class="gsb" role="search">
+  <svg class="gsb-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+    <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle>
+    <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+  </svg>
+  <input type="search" [value]="value" (input)="onInput($event)" (keydown.enter)="submit()" [placeholder]="placeholder"
+    aria-label="Global search" autocomplete="off" maxlength="100">
+  <kbd class="gsb-kbd">↵</kbd>
+</div>

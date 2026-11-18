@@ -1,0 +1,108 @@
+/* ================= Team & Resource Management ================= */
+/* Shared PM blocks (cards, pills, avatars, tables, calendar, drawer) come from project.css / task.css via .pm-page */
+
+#team .min-w-0{min-width: 0;}
+#team .cursor-pointer{cursor: pointer;}
+#team .team-search{min-width: 240px; width: auto; padding-left: 12px; border-color: #CAD8FF;}
+#team .team-search input{padding: 6px 12px 6px 8px;}
+#team .util-green{color: #029848;}
+#team .util-orange{color: #C77800;}
+#team .util-red{color: #E0401C;}
+#team tr.row-click{cursor: pointer;}
+#team tr.row-click:hover td{background: #F6FAFF !important;}
+
+/* ---------- directory ---------- */
+#team .person-card{cursor: pointer; gap: 10px;}
+#team .person-card.invited{border-style: dashed; background: #FFFCF6;}
+#team .person-card.inactive{opacity: .65;}
+
+/* ---------- invite ---------- */
+#team .invite-row{display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1.4fr) 40px; gap: 10px; align-items: center;}
+#team .invite-row .form-control.is-invalid{border-color: #E0401C; background-image: none; padding-right: .75rem;}
+#team .mail-preview{border: 1px solid #E3E9F7; border-radius: 10px; overflow: hidden; background: #F4F7FF;}
+#team .mail-meta{padding: 10px 14px; background: #fff; border-bottom: 1px solid #E3E9F7; display: flex; flex-direction: column; gap: 2px; word-break: break-word;}
+#team .mail-body{margin: 16px; padding: 22px 20px; background: #fff; border-radius: 10px; text-align: center; box-shadow: 0 2px 10px rgba(0, 67, 224, .06);}
+#team .mail-quote{border-left: 3px solid #CAD8FF; padding: 6px 10px; margin: 10px 0 14px; color: #444; text-align: left; background: #FBFCFF; border-radius: 0 6px 6px 0; white-space: pre-wrap; word-break: break-word;}
+#team .mail-btn{display: inline-block; background: #0043E0; color: #fff; border-radius: 8px; padding: 8px 20px; font-weight: 500; font-size: 14px; margin-top: 6px;}
+
+/* ---------- departments / org chart ---------- */
+#team .dept-card{gap: 14px;}
+#team .org-scroll{overflow-x: auto;}
+#team .org-tree, #team .org-tree ul{list-style: none; margin: 0; padding: 0;}
+#team .org-tree ul{padding-left: 34px; position: relative;}
+#team .org-tree li{position: relative; padding: 6px 0;}
+#team .org-tree ul > li::before{content: ''; position: absolute; left: -20px; top: 0; bottom: 0; border-left: 2px solid #CAD8FF;}
+#team .org-tree ul > li:last-child::before{bottom: auto; height: 34px;}
+#team .org-tree ul > li::after{content: ''; position: absolute; left: -20px; top: 34px; width: 18px; border-top: 2px solid #CAD8FF;}
+#team .org-tree > li + li{margin-top: 10px; padding-top: 16px; border-top: 1px dashed #E6ECFA;}
+#team .org-card{display: inline-flex; align-items: center; gap: 10px; min-width: 260px; max-width: 340px; padding: 10px 14px; background: #fff; border: 1px solid #CAD8FF; border-radius: 10px; cursor: pointer; position: relative; transition: box-shadow .2s;}
+#team .org-card:hover{box-shadow: 0 6px 16px rgba(0, 67, 224, .10); border-color: #0043E0;}
+#team .org-count{margin-left: auto; min-width: 24px; height: 24px; border-radius: 12px; background: #0043E0; color: #fff; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px;}
+
+/* small right drawer for forms */
+#team .drawer.drawer-sm{width: min(480px, 100vw);}
+#team .drawer.drawer-sm .sticky-actions{border-radius: 0;}
+
+/* icon-mail has a hardcoded blue glyph colour; inside a filled button it must follow the button text colour */
+#team .btn .icon-mail:before{color: inherit;}
+
+/* ---------- workload ---------- */
+#team .workload-table th, #team .workload-table td{white-space: nowrap;}
+#team .workload-table .heat-th{text-align: center; font-size: 12px; padding-left: 2px; padding-right: 2px; position: relative;}
+#team .workload-table .heat-th.is-today{color: #0043E0;}
+#team .workload-table .heat-td{padding: 6px 2px; text-align: center;}
+#team .workload-table .week-sep{border-left: 2px solid #CAD8FF !important;}
+#team .hol-dot{display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #029848; margin-left: 3px; vertical-align: middle;}
+#team .heat-cell{min-width: 40px; padding: 0 3px; height: 30px; margin: 0 auto; border-radius: 6px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: #071C4D; background: #F6F8FC;}
+#team .heat-cell.is-today{outline: 2px solid #0043E0; outline-offset: 1px;}
+#team .h0{background: #F6F8FC; color: #B5BDCC;}
+#team .h1{background: #EAF0FF;}
+#team .h2{background: #D5E1FF;}
+#team .h3{background: #A9C1FF;}
+#team .h-full{background: #ffd28a; color: #6b4200;}
+#team .h-over{background: #FB6240; color: #fff;}
+#team .off{background: repeating-linear-gradient(45deg, #EEF0F4, #EEF0F4 4px, #F8F9FB 4px, #F8F9FB 8px); color: #8A94A6;}
+#team .heat-key{display: inline-block; width: 14px !important; height: 10px !important;}
+#team .chev{display: inline-block; font-size: 20px; color: #8A94A6; transition: transform .2s; line-height: 1;}
+#team .chev.open{transform: rotate(90deg); color: #0043E0;}
+#team .wl-row{display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #EEF2FC; cursor: pointer; border-radius: 8px;}
+#team .wl-row:hover{background: #F6FAFF;}
+#team .wl-row .avatar{width: 32px; height: 32px; font-size: 11px; border: none;}
+#team .wl-name{width: 170px; flex-shrink: 0;}
+#team .wl-bar{flex: 1; min-width: 120px;}
+#team .wl-status{width: 90px; text-align: right; font-size: 13px;}
+#team .wl-tasks{padding: 4px 8px 8px 48px; border-bottom: 1px solid #EEF2FC; background: #FBFCFF;}
+
+/* ---------- leave calendar ---------- */
+#team .leave-cal .cal-day.holiday{background: #F3FBF6;}
+#team .leave-cal .cal-chip{cursor: default;}
+#team .leave-cal .cal-chip.hol{border-left-color: #029848; background: #E8F7EF; color: #027a3a; font-weight: 500;}
+#team .lv-casual{--lv: #C77800; --lv-bg: #FFF4E0;}
+#team .lv-sick{--lv: #E0401C; --lv-bg: #FFEDEA;}
+#team .lv-earned{--lv: #7A3FE4; --lv-bg: #F1E9FF;}
+#team .lv-wfh{--lv: #0E9AA7; --lv-bg: #E3F6F7;}
+#team .cal-chip[class*='lv-']{border-left-color: var(--lv); background: var(--lv-bg);}
+#team .cal-chip.pending{border-left-style: dashed; background: repeating-linear-gradient(135deg, var(--lv-bg), var(--lv-bg) 6px, #fff 6px, #fff 10px); opacity: .85;}
+#team .legend-pending{background: repeating-linear-gradient(135deg, #CAD8FF, #CAD8FF 3px, #fff 3px, #fff 6px); border: 1px dashed #8A94A6;}
+#team .req-tabs{display: flex;}
+#team .req-tabs a{flex: 1; justify-content: center; padding: 5px 8px; font-size: 13px;}
+#team .req-list{max-height: 460px; overflow-y: auto; scrollbar-width: thin;}
+#team .type-pick{display: inline-flex; align-items: center; gap: 6px; font-size: 13px; margin: 0;}
+#team .type-pick .dot-c{width: 8px; height: 8px; border-radius: 50%;}
+#team .type-pick.active .dot-c{background: #fff !important;}
+#team .leave-summary{display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 10px; background: #F4F7FF; border: 1px solid #DDE6FF;}
+
+/* ---------- profile ---------- */
+#team .profile-avatar{width: 72px; height: 72px; font-size: 24px;}
+#team .profile-meta{max-width: 640px;}
+
+@media (max-width: 767px){
+    #team .invite-row{grid-template-columns: 1fr; gap: 6px; padding: 12px; border: 1px solid #E3E9F7; border-radius: 10px;}
+    #team .team-search{min-width: 0; width: 100%;}
+    #team .org-card{min-width: 220px;}
+    #team .wl-row{flex-wrap: wrap;}
+    #team .wl-name{width: auto; flex: 1;}
+    #team .wl-bar{order: 5; flex-basis: 100%;}
+    #team .wl-tasks{padding-left: 8px;}
+    #team .profile-avatar{width: 56px; height: 56px; font-size: 18px;}
+}

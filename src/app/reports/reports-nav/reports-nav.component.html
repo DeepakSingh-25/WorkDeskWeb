@@ -1,0 +1,5 @@
+<nav class="project-tabs reports-nav mt-2 mb-3">
+  @for (l of links; track l.path) {
+    <a [routerLink]="l.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: l.exact }">{{ l.label }}</a>
+  }
+</nav>

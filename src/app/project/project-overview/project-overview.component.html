@@ -1,0 +1,104 @@
+@if (project) {
+  <div class="row row-gap-3">
+    <!-- KPIs -->
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-1 p-3">
+        <p>Tasks done</p>
+        @if (project.TotalTasks === 0) {
+          <h5 class="text-gray fs-6">No tasks yet</h5>
+        } @else {
+          <h5>{{ project.CompletedTasks }}<small class="text-gray fs-6"> of {{ project.TotalTasks }}</small></h5>
+        }
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-3 p-3">
+        <p>Budget used</p>
+        <h5>{{ budgetUsed }}%</h5>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-4 p-3">
+        <p>People</p>
+        <h5>{{ members.length }}</h5>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-2 kpi-neutral p-3">
+        <p>{{ daysLeft < 0 ? 'Days late' : 'Days left' }}</p>
+        <h5 [class.text-danger]="daysLeft < 0 && project.Status !== 'Completed'">{{ project.Status === 'Completed' ? '—' : (daysLeft < 0 ? -daysLeft : daysLeft) }}</h5>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="col-xl-8">
+      <div class="card-box h-100">
+        <div class="card-head"><h5>About this project</h5></div>
+        <div class="card-body">
+          <p class="mb-4">{{ project.Description || 'No description added.' }}</p>
+          <div class="row row-gap-3">
+            <div class="col-6 col-md-3 meta-item"><div class="label">Client</div><div class="value">{{ project.ClientName || '—' }}</div></div>
+            <div class="col-6 col-md-3 meta-item"><div class="label">Dates</div><div class="value">{{ project.StartDate | date:'dd MMM' }} – {{ project.EndDate | date:'dd MMM yyyy' }}</div></div>
+            <div class="col-6 col-md-3 meta-item"><div class="label">Priority</div><div class="value" [ngClass]="ui.priorityClass(project.Priority)">{{ project.Priority }}</div></div>
+            <div class="col-6 col-md-3 meta-item"><div class="label">Budget</div><div class="value">{{ project.Spent | currency:project.Currency:'symbol':'1.0-0' }} of {{ project.Budget | currency:project.Currency:'symbol':'1.0-0' }}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team -->
+    <div class="col-xl-4">
+      <div class="card-box h-100">
+        <div class="card-head"><h5>Team</h5><a routerLink="../members" class="fs-13 text-primary">View all</a></div>
+        <div class="card-body py-1">
+          @for (m of members.slice(0, 5); track m.ID) {
+            <div class="simple-row">
+              <span class="avatar" [ngClass]="ui.avatarClass(m.Name)">{{ ui.initials(m.Name) }}</span>
+              <span class="simple-text"><b>{{ m.Name }}</b> <span class="text-gray">· {{ m.Role }}</span></span>
+            </div>
+          }
+          @if (members.length === 0) {
+            <p class="text-gray my-3">No one is on this project yet. <a routerLink="../members" class="text-primary">Add people</a></p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming milestones -->
+    <div class="col-xl-8">
+      <div class="card-box h-100">
+        <div class="card-head"><h5>Coming up</h5><a routerLink="../milestones" class="fs-13 text-primary">All milestones</a></div>
+        <div class="card-body py-1">
+          @for (m of upcomingMilestones; track m.ID) {
+            <div class="simple-row">
+              <span class="simple-text"><b>{{ m.Title }}</b> <span class="text-gray">· due {{ m.DueDate | date:'dd MMM' }}</span></span>
+              <span class="pill" [ngClass]="ui.statusClass(m.Status)">{{ m.Status }}</span>
+            </div>
+          }
+          @if (milestones.length === 0) {
+            <p class="text-gray my-3">No milestones yet. <a routerLink="../milestones" class="text-primary">Add one</a></p>
+          } @else if (upcomingMilestones.length === 0) {
+            <p class="text-gray my-3">All milestones are completed.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="col-xl-4">
+      <div class="card-box h-100">
+        <div class="card-head"><h5>Recent activity</h5></div>
+        <div class="card-body py-1">
+          @for (a of activities; track $index) {
+            <div class="simple-row">
+              <span class="avatar" [ngClass]="ui.avatarClass(a.who)">{{ ui.initials(a.who) }}</span>
+              <span class="simple-text"><b>{{ a.who }}</b> {{ a.text }}</span>
+              <span class="simple-time">{{ a.when | date:'dd MMM' }}</span>
+            </div>
+          }
+          @if (activities.length === 0) { <p class="text-gray my-3">No activity yet.</p> }
+        </div>
+      </div>
+    </div>
+  </div>
+}

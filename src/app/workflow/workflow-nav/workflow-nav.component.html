@@ -1,0 +1,9 @@
+<nav class="project-tabs wf-nav mt-3 mb-3">
+  @for (l of links; track l.url) {
+    @if (l.url === '/workflows/designer') {
+      <a routerLink="/workflows/designer/new" [class.active]="isDesigner()">{{ l.label }}</a>
+    } @else {
+      <a [routerLink]="l.url" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: l.exact }">{{ l.label }}</a>
+    }
+  }
+</nav>

@@ -1,0 +1,99 @@
+<div class="drawer-backdrop" (click)="closed.emit()"></div>
+<aside class="drawer issue-drawer" role="dialog" aria-modal="true" aria-label="Issue details">
+  @if (issue) {
+    <div class="drawer-head">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="type-icon" [style.background]="ui.typeColor(f['drpType'].value)" [title]="f['drpType'].value"><fa-icon [icon]="ui.typeIcon(f['drpType'].value)" /></span>
+        <span class="task-key">{{ issue.Key }}</span>
+        <span class="text-gray">·</span>
+        <span class="fs-13 text-gray">{{ sprintName || 'Backlog' }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-1">
+        <button class="icon-btn danger" title="Delete" (click)="onDelete()"><span class="icomoon icon-delete"></span></button>
+        <button class="icon-btn" title="Close (Esc)" (click)="closed.emit()" style="color:#555"><fa-icon [icon]="faClose" /></button>
+      </div>
+    </div>
+
+    <form class="drawer-body d-flex flex-column" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="px-4 py-3 flex-grow-1">
+        <label class="form-label required" for="txtTitle">Title</label>
+        <input id="txtTitle" class="form-control" formControlName="txtTitle" maxlength="150" placeholder="Issue title">
+        @if (submitted && f['txtTitle'].errors?.['required']) { <div class="text-danger fs-13">Title is Required</div> }
+
+        <div class="row row-gap-3 mt-1">
+          <div class="col-sm-6">
+            <label class="form-label required" for="drpType">Type</label>
+            <select id="drpType" class="form-select" formControlName="drpType">
+              @for (t of ui.issueTypes; track t) { <option [value]="t">{{ t }}</option> }
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="drpStatus">Status</label>
+            <select id="drpStatus" class="form-select" formControlName="drpStatus">
+              @for (s of ui.taskStatuses; track s) { <option [value]="s">{{ s }}</option> }
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="drpPoints">Story points</label>
+            <select id="drpPoints" class="form-select" formControlName="drpPoints">
+              <option [ngValue]="null">Not estimated</option>
+              @for (p of ui.fibonacci; track p) { <option [ngValue]="p">{{ p }}</option> }
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Assignee</label>
+            <ng-select [items]="team" bindLabel="Name" bindValue="ID" placeholder="Nobody" formControlName="drpAssignee" appendTo="body"></ng-select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label">Epic</label>
+            <ng-select [items]="epics" bindLabel="Name" bindValue="ID" placeholder="No epic" formControlName="drpEpic" appendTo="body">
+              <ng-template ng-option-tmp let-item="item">
+                <span [style.background]="item.Color" style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px"></span> {{ item.Name }}
+              </ng-template>
+            </ng-select>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="txtDescription">Description</label>
+            <textarea id="txtDescription" class="form-control" rows="4" formControlName="txtDescription" placeholder="As a … I want … so that …"></textarea>
+          </div>
+          <div class="col-12">
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" (click)="showMoreOptions = !showMoreOptions">{{ showMoreOptions ? 'Hide more options' : 'More options' }}</button>
+          </div>
+          @if (showMoreOptions) {
+            <div class="col-sm-6">
+              <label class="form-label" for="drpPriority">Priority</label>
+              <select id="drpPriority" class="form-select" formControlName="drpPriority">
+                @for (p of ui.priorityOptions; track p) { <option [value]="p">{{ p }}</option> }
+              </select>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label mb-0">Done when…</label>
+                @if (criteria.length) { <small class="text-gray">{{ doneCriteria }} of {{ criteria.length }} checked</small> }
+              </div>
+              @for (c of criteria; track $index) {
+                <div class="subtask" [class.done]="c.Done">
+                  <input type="checkbox" class="form-check-input" [(ngModel)]="c.Done" [ngModelOptions]="{ standalone: true }" [attr.aria-label]="'Criterion ' + ($index + 1)">
+                  <span class="st-title flex-grow-1">{{ c.Text }}</span>
+                  <button type="button" class="icon-btn danger" title="Remove" (click)="removeCriterion($index)"><span class="icomoon icon-delete"></span></button>
+                </div>
+              }
+              <div class="d-flex gap-2 mt-2">
+                <input class="form-control form-control-sm" placeholder="Add a check and press Enter" [(ngModel)]="newCriterion"
+                  [ngModelOptions]="{ standalone: true }" (keydown.enter)="$event.preventDefault(); addCriterion()" maxlength="200">
+                <button type="button" class="btn btn-sm btn-outline" (click)="addCriterion()">Add</button>
+              </div>
+            </div>
+          }
+        </div>
+        <p class="text-gray fs-13 mt-3 mb-0">Created {{ issue.CreatedOn | date:'dd MMM yyyy' }}@if (issue.CompletedOn) { · Done {{ issue.CompletedOn | date:'dd MMM yyyy' }} }</p>
+      </div>
+
+      <div class="sticky-actions d-flex gap-2 justify-content-end flex-wrap">
+        <button type="button" class="btn btn-danger" (click)="closed.emit()"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+        <button type="button" class="btn btn-success" (click)="onReset()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+        <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span> Save</button>
+      </div>
+    </form>
+  }
+</aside>

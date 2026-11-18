@@ -1,0 +1,44 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+/* Import Bootstrap */
+@import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+
+@import "./assets/css/dashbaord.css";
+@import "./assets/css/multiselect.css";
+@import "./assets/css/coupon.css";
+@import "./assets/css/style.css";
+@import "./assets/css/icon.css";
+@import "./assets/css/certificate.css";
+@import "./assets/css/login.css";
+@import "./assets/css/ticket.css";
+@import "./assets/css/products.css";
+@import "./assets/css/signup.css";
+@import "./assets/css/project.css";
+@import "./assets/css/task.css";
+@import "./assets/css/team.css";
+@import "./assets/css/agile.css";
+@import "./assets/css/workflow.css";
+@import "./assets/css/settings.css";
+@import "./assets/css/workspace.css";
+@import "./assets/css/reports.css";
+@import "./assets/css/home.css";
+/* night mode: keep these two last */
+@import "./assets/css/dark-auto.css";
+@import "./assets/css/dark.css";
+
+
+/* styles.css */
+.accordion-button::after{
+    display: none;
+}
+
+.owl-dot span{
+    display: none !important;
+}
+.text-no-wrap{
+    white-space: nowrap;
+}
+.cursor-pointer{
+    cursor: pointer;
+}

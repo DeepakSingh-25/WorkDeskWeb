@@ -1,0 +1,4 @@
+.head-title{flex: 1; min-width: 0; font-size: 20px; margin-left: 0; background: transparent;}
+.close-btn{color: #555;}
+.field-assignee{max-width: 240px;}
+.drawer-head{flex-wrap: wrap;}

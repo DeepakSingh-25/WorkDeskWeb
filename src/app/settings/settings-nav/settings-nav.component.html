@@ -1,0 +1,13 @@
+<nav class="settings-nav" aria-label="Settings">
+  <div class="settings-nav-title">Settings</div>
+  @for (g of groups; track g.Title) {
+    <div class="settings-nav-group">
+      <div class="settings-nav-label">{{ g.Title }}</div>
+      @for (i of g.Items; track i.Link) {
+        <a [routerLink]="i.Link" routerLinkActive="active" class="settings-nav-link">
+          <fa-icon [icon]="i.Icon" [fixedWidth]="true" /> <span>{{ i.Label }}</span>
+        </a>
+      }
+    </div>
+  }
+</nav>

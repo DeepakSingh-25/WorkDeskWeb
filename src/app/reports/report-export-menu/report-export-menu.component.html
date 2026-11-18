@@ -1,0 +1,16 @@
+<div class="export-menu">
+  <button type="button" class="btn btn-primary" [attr.aria-expanded]="open" aria-haspopup="menu" (click)="open = !open">
+    <span class="icomoon icon-download me-2"></span> Export <fa-icon [icon]="faDown" class="ms-1 small" />
+  </button>
+  @if (open) {
+    <div class="export-pop" role="menu">
+      <div class="pop-head">Export {{ title }} <small class="text-gray">({{ rows.length }} rows)</small></div>
+      @for (f of formats; track f.key) {
+        <button type="button" role="menuitem" class="pop-item" (click)="run(f.key)">
+          <span class="fmt-icon" [ngClass]="'fmt-' + f.key.toLowerCase()"><fa-icon [icon]="f.icon" /></span>
+          <span><b>{{ f.label }}</b><small class="d-block text-gray">{{ f.hint }}</small></span>
+        </button>
+      }
+    </div>
+  }
+</div>

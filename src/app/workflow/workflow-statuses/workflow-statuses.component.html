@@ -1,0 +1,206 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="workflow">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/workflows">Workflow &amp; Approval</a> / Statuses</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Statuses</h2>
+      <p class="text-gray mb-0 fs-13">The stages an item can be in, like To Do, In Review or Done.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-primary" (click)="openStatus()">+ Add status</button>
+    </div>
+  </div>
+
+  <app-workflow-nav></app-workflow-nav>
+
+  <!-- ========== statuses ========== -->
+  <div class="card-box mb-3">
+    <div class="card-head d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <h5>All statuses</h5>
+      <div class="status-tabs">
+        @for (c of ['', 'To Do', 'In Progress', 'Done']; track c) {
+          <button type="button" [class.active]="categoryFilter === c" (click)="categoryFilter = c">{{ c || 'All' }}<span class="count">{{ catCount(c) }}</span></button>
+        }
+      </div>
+    </div>
+    <div class="card-body p-2">
+      <small class="text-gray d-block px-2 mb-1">Drag a row to change the order shown on boards and lists.</small>
+      @for (s of visibleStatuses; track s.ID; let i = $index) {
+        <div class="simple-row status-row" draggable="true"
+             [class.dragging]="dragIndex === i" [class.drop-over]="overIndex === i && dragIndex !== i"
+             (dragstart)="onDragStart(i, $event)" (dragover)="onDragOver(i, $event)" (drop)="onDrop(i, $event)" (dragend)="onDragEnd()">
+          <span class="grip" title="Drag to reorder"><fa-icon [icon]="faGrip" /></span>
+          <span class="sw-dot lg" [style.background]="s.Color" title="Status colour"></span>
+          <div class="simple-text" [title]="s.Description"><b>{{ s.Name }}</b> <span class="text-gray">· {{ s.Category }} stage</span></div>
+          <span class="simple-time">{{ s.UsedBy ? 'Used in ' + s.UsedBy + (s.UsedBy === 1 ? ' workflow' : ' workflows') : 'Not used' }}</span>
+          <div class="d-flex gap-1">
+            <button type="button" class="icon-btn" title="Edit" (click)="openStatus(s)"><span class="icomoon icon-edit"></span></button>
+            <button type="button" class="icon-btn danger" [title]="s.UsedBy ? 'In use — cannot delete' : 'Delete'" (click)="deleteStatus(s)"><span class="icomoon icon-delete"></span></button>
+          </div>
+        </div>
+      } @empty {
+        <div class="text-center py-4">
+          <p class="mb-2">No statuses here yet.</p>
+          <button type="button" class="btn btn-primary btn-sm" (click)="openStatus()">+ Add status</button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ========== which status can move to which ========== -->
+  <div class="card-box">
+    <div class="card-head d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer" (click)="showMatrix = !showMatrix">
+      <div>
+        <h5 class="mb-0">Which status can move to which</h5>
+        <small class="text-gray">Choose the moves people are allowed to make in each workflow.</small>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm">{{ showMatrix ? 'Hide' : 'Show' }}</button>
+    </div>
+    @if (showMatrix) {
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+          <select class="form-select form-select-sm" style="width:auto; min-width: 220px" [ngModel]="workflowID" (ngModelChange)="selectWorkflow($event)" aria-label="Workflow">
+            @for (w of workflows; track w.ID) { <option [ngValue]="w.ID">{{ w.Name }}</option> }
+          </select>
+          <div class="d-flex gap-3 align-items-center flex-wrap">
+            <div class="form-check form-switch m-0">
+              <input class="form-check-input" type="checkbox" role="switch" id="chkShowAll" [(ngModel)]="showAll">
+              <label class="form-check-label fs-13" for="chkShowAll">Show every status</label>
+            </div>
+            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" (click)="allowAll()">Allow all</button>
+            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" (click)="clearAll()">Clear all</button>
+          </div>
+        </div>
+        <p class="fs-13 text-gray mb-2">Tick a box to let items move from the status on the left to the status at the top. Click <fa-icon [icon]="faGear" /> on a ticked box to add conditions. {{ transitionCount }} {{ transitionCount === 1 ? 'move' : 'moves' }} allowed.</p>
+
+        <div class="table-responsive matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th class="corner"><span>From ↓ &nbsp; To →</span></th>
+                @for (to of matrixStatuses; track to.ID) {
+                  <th class="col-h"><span class="v">{{ to.Name }}</span></th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (from of matrixStatuses; track from.ID) {
+                <tr>
+                  <th class="row-h">{{ from.Name }}</th>
+                  @for (to of matrixStatuses; track to.ID) {
+                    @if (from.ID === to.ID) {
+                      <td class="self"></td>
+                    } @else {
+                      <td class="cell" [class.on]="!!rule(from.ID, to.ID)" (click)="toggle(from.ID, to.ID)"
+                          [title]="rule(from.ID, to.ID) ? from.Name + ' → ' + to.Name + ' — ' + ruleTitle(rule(from.ID, to.ID)!) : 'Allow ' + from.Name + ' → ' + to.Name">
+                        <input type="checkbox" class="form-check-input" [checked]="!!rule(from.ID, to.ID)" tabindex="-1" aria-hidden="true">
+                        @if (rule(from.ID, to.ID); as r) {
+                          <button type="button" class="rule-btn" [class.has]="r.RequiredFields.length || r.RoleIDs.length" title="Conditions for this move" (click)="openRule(from, to, $event)"><fa-icon [icon]="faGear" /></button>
+                        }
+                      </td>
+                    }
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+          <span class="fs-13">
+            @if (transitionsDirty) { <span class="save-state unsaved">Not saved yet</span> }
+          </span>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success" [disabled]="!transitionsDirty" (click)="resetTransitions()"><span class="icomoon icon-reset me-2"></span>Reset</button>
+            <button type="button" class="btn btn-primary" [disabled]="!transitionsDirty" (click)="saveTransitions()"><span class="icomoon icon-save me-2"></span>Save</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ========== drawers ========== -->
+  @if (drawer) {
+    <div class="drawer-backdrop" (click)="drawer = null"></div>
+    <aside class="drawer wf-drawer" role="dialog" aria-modal="true">
+      @if (drawer === 'status') {
+        <div class="drawer-head">
+          <h5 class="mb-0 fw-600">{{ editingStatus ? 'Edit status' : 'Add status' }}</h5>
+          <button type="button" class="icon-btn" title="Close" (click)="drawer = null"><fa-icon [icon]="faClose" /></button>
+        </div>
+        <form class="drawer-body p-4" [formGroup]="statusForm" (ngSubmit)="saveStatus()">
+          <div class="status-preview mb-4">
+            <span class="prev-pill" [style.background]="statusForm.value.txtColor + '1F'" [style.color]="statusForm.value.txtColor">
+              <span class="dot" [style.background]="statusForm.value.txtColor"></span>{{ statusForm.value.txtName || 'Status name' }}
+            </span>
+            <small class="text-gray ms-2">Preview</small>
+          </div>
+          <label class="form-label required">Name</label>
+          <input class="form-control" formControlName="txtName" maxlength="30" placeholder="e.g. Ready for QA">
+          @if (statusForm.get('txtName')?.touched && statusForm.get('txtName')?.hasError('required')) { <div class="text-danger fs-13">Name is Required</div> }
+          @if (statusForm.get('txtName')?.hasError('duplicate')) { <div class="text-danger fs-13">A status with this name already exists</div> }
+
+          <label class="form-label required mt-3">Stage</label>
+          <div class="seg">
+            @for (c of categories; track c) {
+              <button type="button" [class.active]="statusForm.value.drpCategory === c" (click)="statusForm.patchValue({ drpCategory: c })">{{ c }}</button>
+            }
+          </div>
+          <small class="text-gray d-block mt-1">Used for progress: To Do = not started, Done = finished.</small>
+
+          <label class="form-label required mt-3">Color</label>
+          <div class="swatches">
+            @for (c of swatches; track c) {
+              <button type="button" class="swatch" [style.background]="c" [class.active]="statusForm.value.txtColor === c" [title]="c" (click)="pickColor(c)"></button>
+            }
+          </div>
+
+          <button type="button" class="btn btn-sm btn-link px-0 mt-3 text-decoration-none d-block" (click)="showMoreStatus = !showMoreStatus">{{ showMoreStatus ? 'Hide' : 'More options' }}</button>
+          @if (showMoreStatus) {
+            <label class="form-label mt-2">Description</label>
+            <textarea class="form-control" rows="3" formControlName="txtDescription" placeholder="When should an item be in this status?"></textarea>
+          }
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-danger" (click)="drawer = null"><span class="icomoon icon-cancel me-2"></span>Cancel</button>
+            <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span>Save</button>
+          </div>
+        </form>
+      } @else if (ruleFrom && ruleTo) {
+        <div class="drawer-head">
+          <div>
+            <h5 class="mb-0 fw-600">Conditions for this move</h5>
+            <small class="text-gray">{{ workflow?.Name }}</small>
+          </div>
+          <button type="button" class="icon-btn" title="Close" (click)="drawer = null"><fa-icon [icon]="faClose" /></button>
+        </div>
+        <div class="drawer-body p-4">
+          <div class="tr-flow mb-4">
+            <span class="prev-pill" [style.background]="ruleFrom.Color + '1F'" [style.color]="ruleFrom.Color"><span class="dot" [style.background]="ruleFrom.Color"></span>{{ ruleFrom.Name }}</span>
+            <span class="arrow">→</span>
+            <span class="prev-pill" [style.background]="ruleTo.Color + '1F'" [style.color]="ruleTo.Color"><span class="dot" [style.background]="ruleTo.Color"></span>{{ ruleTo.Name }}</span>
+          </div>
+
+          <label class="form-label">Fields that must be filled in</label>
+          <ng-select [items]="requiredFieldOptions" [multiple]="true" [(ngModel)]="ruleRequired" placeholder="No fields required" [closeOnSelect]="false"></ng-select>
+          <small class="text-gray d-block mt-1">These must be filled in before the item can move.</small>
+
+          <label class="form-label mt-4">Who can make this move</label>
+          <div class="d-flex flex-wrap gap-2">
+            @for (r of ui.roles; track r.ID) {
+              <span class="day-chip" [class.active]="ruleRoles.includes(r.ID)" (click)="toggleRuleRole(r.ID)">{{ r.Name }}</span>
+            }
+          </div>
+          <small class="text-gray d-block mt-1">{{ ruleRoles.length ? 'Only the selected roles' : 'Everyone with edit access' }} can move items.</small>
+
+          <div class="d-flex justify-content-between gap-2 mt-4 flex-wrap">
+            <button type="button" class="btn btn-red" (click)="removeRuleTransition()">Don&#39;t allow this move</button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-danger" (click)="drawer = null"><span class="icomoon icon-cancel me-2"></span>Cancel</button>
+              <button type="button" class="btn btn-primary" (click)="applyRule()"><span class="icomoon icon-check me-2"></span>Apply</button>
+            </div>
+          </div>
+        </div>
+      }
+    </aside>
+  }
+</div>

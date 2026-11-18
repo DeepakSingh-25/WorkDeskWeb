@@ -1,0 +1,24 @@
+<div class="filter-bar d-flex gap-2 flex-wrap align-items-center">
+  <div class="search position-relative icomoon icon-search">
+    <input type="text" placeholder="Search tasks" [value]="page.searchValue" (input)="page.getSearchValue($event)" autocomplete="off">
+  </div>
+  <ng-select class="ng-select-sm" [items]="page.drpProjectData" bindLabel="Name" bindValue="ID" placeholder="All projects"
+    [ngModel]="page.projectID" (ngModelChange)="page.onProjectChange($event)" [searchable]="true"></ng-select>
+  <ng-select [items]="page.drpUserData" bindLabel="Name" bindValue="ID" placeholder="All people"
+    [(ngModel)]="page.assigneeID" (ngModelChange)="page.onFilterChange()"></ng-select>
+  <button type="button" class="btn btn-sm btn-outline py-1" (click)="showMore = !showMore" [attr.aria-expanded]="showMore || !!page.priority">
+    {{ showMore || page.priority ? 'Fewer filters' : 'More filters' }}
+  </button>
+  @if (page.hasFilters) {
+    <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger" (click)="page.clearFilters()">Clear</button>
+  }
+</div>
+@if (showMore || page.priority) {
+  <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+    <select class="form-select form-select-sm w-auto" [(ngModel)]="page.priority" (change)="page.onFilterChange()" aria-label="Priority">
+      <option value="">All priorities</option>
+      @for (p of priorities; track p) { <option [value]="p">{{ p }}</option> }
+    </select>
+    <button type="button" class="btn btn-sm btn-outline py-1" (click)="page.myTasks()">Only my tasks</button>
+  </div>
+}

@@ -1,0 +1,94 @@
+/* ================= Main Dashboard (My work) ================= */
+/* Shared PM blocks (cards, pills, avatars, tables, calendar, simple rows) come from project.css / task.css via .pm-page */
+
+#home .min-w-0{min-width: 0;}
+#home .cursor-pointer{cursor: pointer;}
+#home .card-box .card-head a{text-decoration: none; color: #0043E0;}
+#home .count-chip{display: inline-block; background: #EEF2FC; color: #0043E0; border-radius: 50px; padding: 0 8px; font-size: 12px; font-weight: 600; margin-left: 6px; vertical-align: middle;}
+#home .unread-dot{display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0043E0; flex-shrink: 0;}
+
+/* sub nav badges */
+#home .home-nav{overflow-x: auto; flex-wrap: nowrap; white-space: nowrap;}
+#home .home-nav .nav-badge{display: inline-block; min-width: 18px; height: 18px; line-height: 18px; padding: 0 5px; margin-left: 4px; border-radius: 50px; background: #0043E0; color: #fff; font-size: 11px; font-weight: 600; text-align: center;}
+#home .home-nav .nav-badge.red{background: #E0401C;}
+
+/* KPI tiles */
+#home .kpi-link{display: block; text-decoration: none; color: inherit; height: 100%; transition: transform .15s, box-shadow .15s;}
+#home .kpi-link:hover{transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 67, 224, .12);}
+#home .dashboard-box{height: 100%;}
+#home .dashboard-box p{margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+
+/* simple rows: one plain sentence per row, time on the right */
+#home .simple-row{display: flex; align-items: center; gap: 14px; padding: 16px 8px; min-height: 64px; border-bottom: 1px solid #EEF2FC; cursor: pointer; border-radius: 8px;}
+#home .simple-row:last-child{border-bottom: none;}
+#home .simple-row:hover{background: #F6FAFF;}
+#home .simple-row.unread{background: #F7F9FF;}
+#home .simple-row.unread .simple-text{color: #000;}
+#home .simple-row .avatar{width: 36px; height: 36px; font-size: 12px; border: none; flex-shrink: 0;}
+#home .simple-text{flex: 1; min-width: 0; font-size: 14px; color: #333; line-height: 1.7;}
+#home .simple-text b{color: #000; font-weight: 600;}
+#home .simple-time{font-size: 13px; color: #7B7B7B; white-space: nowrap; margin-left: 16px; flex-shrink: 0;}
+#home .simple-row .dropdown-menu{font-size: 13px;}
+
+/* today's focus: round "mark done" button */
+#home .check-btn{width: 26px; height: 26px; border-radius: 50%; border: 2px solid #CAD8FF; background: #fff; color: transparent; font-size: 13px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s;}
+#home .check-btn:hover{border-color: #029848; color: #029848; background: #E8F7EF;}
+
+/* quick actions */
+#home .quick-actions{display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;}
+#home .quick-actions a{display: flex; align-items: center; justify-content: center; padding: 12px 6px; border: 1px solid #CAD8FF; border-radius: 10px; text-decoration: none; color: #071C4D; font-size: 13px; font-weight: 500; text-align: center; transition: background .15s;}
+#home .quick-actions a:hover{background: #F4F7FF;}
+
+/* week strip (overview, under "Show more") */
+#home .week-strip{display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;}
+#home .week-day{border: 1px solid #E6ECFA; border-radius: 10px; padding: 8px; min-height: 120px; display: flex; flex-direction: column; gap: 4px; background: #fff;}
+#home .week-day.today{border-color: #0043E0; box-shadow: 0 0 0 2px #EAF0FF;}
+#home .week-day .wd-head{display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #7B7B7B; margin-bottom: 2px;}
+#home .week-day .wd-head b{font-size: 15px; color: #000;}
+#home .week-day.today .wd-head b{color: #0043E0;}
+#home .week-day .empty{text-align: center; margin-top: 12px;}
+
+/* project cards */
+#home .mini-project{display: block; border: 1px solid #CAD8FF; border-radius: 10px; padding: 14px; text-decoration: none; color: inherit; height: 100%; transition: box-shadow .15s, transform .15s;}
+#home .mini-project:hover, #home .project-card:hover{box-shadow: 0 6px 16px rgba(0, 67, 224, .12); transform: translateY(-2px);}
+#home .project-card{cursor: pointer; transition: box-shadow .15s, transform .15s;}
+#home .star{color: #B5BDCC; font-size: 18px;}
+#home .star.on{color: #ffa529;}
+
+/* my tasks */
+#home .bucket.b-red{border-left: 4px solid #FB6240;}
+#home .bucket.b-orange{border-left: 4px solid #ffa529;}
+#home .bucket.b-blue{border-left: 4px solid #0043E0;}
+#home .bucket.b-green{border-left: 4px solid #029848;}
+#home .bucket.b-grey{border-left: 4px solid #8A94A6;}
+#home .bucket .chev{display: inline-block; transition: transform .15s; color: #8A94A6;}
+#home .bucket .chev.open{transform: rotate(90deg);}
+#home .task-row .form-check-input{width: 18px; height: 18px; cursor: pointer;}
+#home .task-row.done .t-title{text-decoration: line-through; color: #8A94A6;}
+
+/* calendar */
+#home .cal-legend{display: flex; gap: 8px; flex-wrap: wrap;}
+#home .legend-toggle{display: inline-flex; align-items: center; gap: 6px; border: 1px solid #CAD8FF; background: #fff; border-radius: 50px; padding: 4px 12px; font-size: 13px; color: #333;}
+#home .legend-toggle i{width: 10px; height: 10px; border-radius: 3px; display: inline-block;}
+#home .legend-toggle i.late{background: #FB6240;}
+#home .legend-toggle.off{opacity: .45; text-decoration: line-through;}
+#home .legend-toggle.static{cursor: default; border-style: dashed;}
+#home .cal-chip.ct-milestone{background: #F6F1FF;}
+#home .cal-chip.ct-leave{background: #FFF8EC;}
+#home .cal-chip.ct-holiday{background: #EEF9F3;}
+#home .cal-chip.ct-sprint{background: #E9F7F8;}
+#home .cal-chip.late{background: #FFF3F0;}
+#home .cal.week-mode .cal-day{min-height: 360px;}
+#home .cal.week-mode .cal-chip{white-space: normal;}
+#home .cal-chip .chip-meta{font-size: 11px; white-space: normal;}
+
+@media (max-width: 991px){
+  #home .week-strip{grid-template-columns: repeat(4, minmax(0, 1fr));}
+}
+@media (max-width: 575px){
+  #home .quick-actions{grid-template-columns: repeat(2, minmax(0, 1fr));}
+  #home .week-strip{grid-template-columns: repeat(2, minmax(0, 1fr));}
+  #home .simple-row{flex-wrap: wrap;}
+  #home .cal-day{min-height: 80px;}
+  #home .cal-chip{font-size: 10px; padding: 2px 4px;}
+}

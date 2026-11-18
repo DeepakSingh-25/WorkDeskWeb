@@ -1,0 +1,59 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="home">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/dashboard">Dashboard</a> / My Tasks</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div><h2 class="fw-bold mb-0">My Tasks</h2><p class="text-gray mb-0 fs-13">Your {{ openCount }} open tasks, grouped by when they are due.</p></div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline" routerLink="/tasks/board">Board</a>
+      <a class="btn btn-primary" routerLink="/tasks/create"><span class="icomoon icon-plus1 me-2"></span>Create Task</a>
+    </div>
+  </div>
+  <app-home-nav></app-home-nav>
+
+  <div class="filter-bar d-flex gap-2 flex-wrap align-items-center mb-3">
+    <div class="search position-relative icomoon icon-search">
+      <input type="text" placeholder="Search tasks" [(ngModel)]="search" (ngModelChange)="regroup()" autocomplete="off">
+    </div>
+    <ng-select [items]="projectOptions" bindLabel="Name" bindValue="ID" placeholder="All Projects"
+      [(ngModel)]="projectID" (ngModelChange)="regroup()"></ng-select>
+    <button type="button" class="btn btn-outline btn-sm" (click)="moreFilters = !moreFilters">{{ moreFilters ? 'Fewer filters' : 'More filters' }}</button>
+    @if (hasFilters) {
+      <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger" (click)="clearFilters()">Clear</button>
+    }
+  </div>
+  @if (moreFilters) {
+    <div class="d-flex gap-3 flex-wrap align-items-center mb-3">
+      <select class="form-select form-select-sm w-auto" [(ngModel)]="sortBy" (change)="regroup()" aria-label="Sort">
+        <option value="due">Sort by due date</option>
+        <option value="priority">Sort by priority</option>
+      </select>
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" id="chkShowDone" [(ngModel)]="showDone" (ngModelChange)="regroup()">
+        <label class="form-check-label fs-13" for="chkShowDone">Show finished tasks</label>
+      </div>
+    </div>
+  }
+
+  @for (g of groups; track g.name) {
+    <div class="card-box bucket mb-3" [ngClass]="bucketClass(g.name)">
+      <div class="card-head cursor-pointer" (click)="toggle(g.name)">
+        <h5><span class="chev" [class.open]="!collapsed[g.name]">▸</span> {{ g.name }} <span class="count-chip">{{ g.tasks.length }}</span></h5>
+        <small class="text-gray">{{ collapsed[g.name] ? 'Show' : 'Hide' }}</small>
+      </div>
+      @if (!collapsed[g.name]) {
+        <div class="card-body py-1 px-3">
+          @for (t of g.tasks; track t.ID) {
+            <div class="simple-row task-row" [class.done]="t.Status === 'Done'" (click)="ui.isControl($event) || openTask(t)">
+              <input class="form-check-input mt-0 flex-shrink-0" type="checkbox" [checked]="t.Status === 'Done'" (click)="toggleDone(t)" [attr.aria-label]="'Mark ' + ui.stripKey(t.Title) + ' done'">
+              <span class="simple-text text-truncate"><b class="t-title">{{ ui.stripKey(t.Title) }}</b> <span class="text-gray">· {{ t.ProjectName }}</span>
+                @if (t.IsBlocked) { <span class="blocked-chip ms-1">Blocked</span> }
+              </span>
+              <span class="simple-time fw-600" [ngClass]="ui.dueClass(t)">{{ t.Status === 'Done' ? 'Done' : ui.dueLabel(t) }}</span>
+            </div>
+          } @empty {
+            <div class="text-center text-gray py-3 fs-13">No tasks here.</div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

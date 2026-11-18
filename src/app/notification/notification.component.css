@@ -1,0 +1,171 @@
+.notification {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  width: fit-content;
+  max-width: 90%;
+  padding: 10px;
+  margin-bottom: 10px;
+  /* text-align: center; */
+  border-radius: 5px;
+  color: white;
+  z-index: 1000; 
+  animation-name: notify;
+  animation-duration: 0.5s;
+  display: flex;
+  overflow: hidden;
+  font-size: 16px;
+}
+
+.notification.success {
+  border: 2px solid #00ab30;
+  color: #00ab30;
+  background-color:white;
+  overflow: visible;
+  z-index: 9999 !important ;
+}
+.success-bedge{
+  display: none;
+}
+.notification.success .success-bedge{
+  display: block;
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  background-color: #00ab30;
+  color: white;
+  padding: 2px 5px;
+  border-radius: 3px;
+ font-size: 10px; 
+}
+.notification.error {
+  border: 2px solid #ae2525;
+  color: #ae2525;
+  background-color:white;
+  z-index: 9999 !important ;
+}
+/* .notification.success::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  border-radius: 5px 20% 50% 30%;
+  left: 0;
+  width: 20%; 
+  height: 20%;
+  transform: translateX(-30px) translateY(-30px);
+  pointer-events: none; 
+  box-shadow: 0px 0px 40px 50px  #c9e8e0b1;  
+  z-index: 1;
+} */
+.notification.error::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  border-radius: 5px 20% 50% 30%;
+  left: 0;
+  width: 20%; 
+  height: 20%;
+  transform: translateX(-30px) translateY(-30px);
+  pointer-events: none; 
+  box-shadow: 0px 0px 40px 50px  #f1babaa9;  
+  z-index: 1;
+}
+.notification.delete , .notification.confirm{
+  padding: 20px;
+  width: 480px;
+}
+.notification.delete::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  border-radius: 5px 20% 50% 30%;
+  left: 0;
+  width: 20%; 
+  height: 20%;
+  transform: translateX(-30px) translateY(-30px);
+  pointer-events: none; 
+  box-shadow: 0px 0px 40px 50px  #f1babaa9;  
+  z-index: 1;
+}
+.notification.confirm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  border-radius: 5px 20% 50% 30%;
+  left: 0;
+  width: 20%; 
+  height: 20%;
+  transform: translateX(-30px) translateY(-30px);
+  pointer-events: none; 
+  box-shadow: 0px 0px 40px 50px  #eceefe;  
+  z-index: 1;
+}
+.notification.delete {
+  box-shadow: 0px 0px 4px 0px #ae2525;
+  color: #ae2525;
+  background-color: white;
+}
+.notification.confirm {
+  box-shadow: 0px 0px 4px 0px #253ddb;
+  color: #253ddb;
+  background-color: white;
+}
+.notification .btn.confirm{
+  background-color: #253ddb;
+  color: white;
+}
+.notification .btn.delete{
+  background-color: green;
+  color: white;
+}
+.notification .btn{
+  padding: 2px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.notification .btn.cancel{
+  background-color: #ae2525;
+  color: white;
+  margin-left: 5px;
+}
+.bedge{
+    position: absolute;
+    color: white;
+    padding: 3px 5px;
+    font-size: 12px;
+    top: -15px;
+    border-radius: 5px;
+}
+.notification .close{
+  /* position: absolute; */
+  color: gray;
+  font-size: 12px;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 2px 10px;
+  border: none;
+  /* background-color: #c82b2bba; */
+  border: 1px solid lightgray;
+  background-color: white;
+}
+
+.notification-container:has(.notification.confirm), 
+.notification-container:has(.notification.delete) {
+  background-color: rgba(255, 255, 255, 0.611);
+  height: 100vh;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+}
+@keyframes notify {
+    0%{
+        transform: translateX(-50%) translateY(-100px);
+    }
+    100%{
+        transform: translateX(-50%) translateY(5px);
+    }
+}

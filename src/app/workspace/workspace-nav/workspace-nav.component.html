@@ -1,0 +1,5 @@
+<nav class="project-tabs ws-nav mt-3 mb-3" aria-label="Workspace navigation">
+  @for (l of links; track l.Path) {
+    <a [routerLink]="l.Path" routerLinkActive="active"><fa-icon [icon]="l.Icon" class="me-1" /> {{ l.Label }}</a>
+  }
+</nav>

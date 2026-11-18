@@ -1,0 +1,228 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="agile">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/agile/backlog" [queryParams]="{ project: projectID }">Agile</a> / Sprint Planning</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Sprint Planning</h2>
+      <p class="text-gray mb-0 fs-13">{{ projectName }} · choose the work for the next sprint.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      @if (plannedSprints.length) {
+        <select class="form-select w-auto" [ngModel]="selectedSprintID" (ngModelChange)="selectSprint($event)" aria-label="Planned sprint">
+          @for (s of plannedSprints; track s.ID) { <option [ngValue]="s.ID">{{ s.Name }}</option> }
+        </select>
+      }
+      <button type="button" class="btn btn-link text-decoration-none" (click)="createSprint()">+ New Sprint</button>
+      @if (sprint) {
+        <button type="button" class="btn btn-primary" (click)="startSprint()">Start Sprint</button>
+      }
+    </div>
+  </div>
+
+  <app-agile-nav [projectID]="projectID"></app-agile-nav>
+
+  @if (!sprint) {
+    <div class="card-box">
+      <div class="card-body text-center py-5">
+        <img src="../../assets/images/no_record_found.webp" alt="" width="200">
+        <h6 class="mt-2">No planned sprint</h6>
+        <p class="text-gray fs-13">Create a sprint to start planning the next iteration.</p>
+        <button type="button" class="btn btn-primary" (click)="createSprint()">+ Create Sprint</button>
+      </div>
+    </div>
+  } @else {
+    @if (activeSprint) {
+      <div class="info-note mb-3">
+        <b>{{ activeSprint.Name }}</b> is still running. Starting {{ sprint.Name }} will first ask you to finish it.
+      </div>
+    }
+
+    <div class="row row-gap-3">
+      <!-- sprint details -->
+      <div class="col-xl-5">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>Sprint details</h5></div>
+          <form class="card-body" [formGroup]="form" (ngSubmit)="saveSprint()">
+            <div class="row row-gap-3">
+              <div class="col-12">
+                <label class="form-label required" for="txtName">Sprint name</label>
+                <input id="txtName" class="form-control" formControlName="txtName" maxlength="60">
+                @if (submitted && f.txtName.errors?.['required']) { <div class="text-danger fs-13">Sprint name is Required</div> }
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="txtGoal">Sprint goal</label>
+                <textarea id="txtGoal" class="form-control" rows="2" formControlName="txtGoal" maxlength="250" placeholder="What will this sprint achieve?"></textarea>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label required" for="txtStartDate">Start date</label>
+                <input id="txtStartDate" type="date" class="form-control" formControlName="txtStartDate">
+                @if (submitted && f.txtStartDate.errors?.['required']) { <div class="text-danger fs-13">Start date is Required</div> }
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label required" for="txtEndDate">End date</label>
+                <input id="txtEndDate" type="date" class="form-control" formControlName="txtEndDate">
+                @if (submitted && f.txtEndDate.errors?.['required']) { <div class="text-danger fs-13">End date is Required</div> }
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+              <small class="text-gray">{{ sprintLength }} days long</small>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-success btn-sm" (click)="resetSprint()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+                <button type="submit" class="btn btn-primary btn-sm"><span class="icomoon icon-save me-2"></span> Save</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- commitment -->
+      <div class="col-xl-7">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>Is this too much?</h5></div>
+          <div class="card-body">
+            <p class="fs-5 mb-2">You planned <b>{{ committed }} story points</b>; the team can do about <b>{{ capacityPoints }}</b>.</p>
+            <div class="capacity-bar">
+              <div class="fill" [class.over]="committed > capacityPoints" [class.near]="loadPct >= 85 && loadPct <= 100" [style.width.%]="loadPct > 100 ? 100 : loadPct"></div>
+            </div>
+            @if (committed > capacityPoints) {
+              <div class="text-danger fs-13 mt-2">That is {{ committed - capacityPoints }} story points too many. Move some work back to the backlog.</div>
+            } @else {
+              <div class="text-gray fs-13 mt-2">There is room for {{ capacityPoints - committed }} more story points.</div>
+            }
+            @if (unestimatedCount) {
+              <div class="text-danger fs-13 mt-1">{{ unestimatedCount }} {{ unestimatedCount === 1 ? 'item has' : 'items have' }} no story points yet.</div>
+            }
+            @if (avgVelocity) {
+              <div class="text-gray fs-13 mt-1">In past sprints the team finished about {{ avgVelocity }} story points.</div>
+            }
+
+            <div class="d-flex gap-2 flex-wrap mt-3">
+              <button type="button" class="btn btn-outline btn-sm" (click)="showVelocity = !showVelocity">{{ showVelocity ? 'Hide past sprints' : 'Show past sprints' }}</button>
+              <button type="button" class="btn btn-outline btn-sm" (click)="showCapacity = !showCapacity">{{ showCapacity ? 'Hide team hours' : 'Adjust team hours' }}</button>
+            </div>
+
+            @if (showVelocity) {
+              <div class="mt-3">
+                @if (velocity.length) {
+                  <div class="velocity-bars">
+                    @for (v of velocity; track v.Name) {
+                      <div class="v-row">
+                        <span class="v-name">{{ v.Name }}</span>
+                        <div class="v-track">
+                          <div class="v-bar committed" [style.width.%]="v.Committed / maxVelocity * 100" [title]="'Planned ' + v.Committed"></div>
+                          <div class="v-bar completed" [style.width.%]="v.Completed / maxVelocity * 100" [title]="'Finished ' + v.Completed"></div>
+                        </div>
+                        <span class="v-val">{{ v.Completed }} of {{ v.Committed }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="gantt-legend d-flex gap-3 mt-2 fs-13 text-gray">
+                    <span><i class="legend-sq" style="background:#C9D6F7"></i> Planned</span>
+                    <span><i class="legend-sq" style="background:#029848"></i> Finished</span>
+                  </div>
+                } @else {
+                  <p class="text-gray fs-13 mb-0">No finished sprints yet.</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- capacity -->
+      @if (showCapacity) {
+        <div class="col-12">
+          <div class="card-box">
+            <div class="card-head flex-wrap">
+              <h5>Team hours this sprint</h5>
+              <button type="button" class="btn btn-sm btn-outline py-1" (click)="resetCapacity()">Reset from weekly hours</button>
+            </div>
+            <div class="p-0 table-responsive">
+              <table class="table align-middle mb-0 capacity-table">
+                <thead>
+                  <tr class="lightblue">
+                    <th>Person</th><th>Hours a week</th><th>Free hours this sprint</th><th>Hours per story point</th><th style="min-width:180px">Planned for them</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of sprint.Capacity; track c.UserID) {
+                    <tr class="content">
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="avatar sm" [ngClass]="ui.avatarClass(memberName(c.UserID))">{{ ui.initials(memberName(c.UserID)) }}</span>
+                          {{ memberName(c.UserID) }}
+                        </div>
+                      </td>
+                      <td>{{ userWeekly(c.UserID) }} hrs</td>
+                      <td><input type="number" class="form-control form-control-sm num-input" min="0" max="400" [(ngModel)]="c.AvailableHours" (change)="saveCapacity()" [attr.aria-label]="'Free hours ' + memberName(c.UserID)"></td>
+                      <td><input type="number" class="form-control form-control-sm num-input" min="1" max="40" [(ngModel)]="c.FocusFactor" (change)="saveCapacity()" [attr.aria-label]="'Hours per story point ' + memberName(c.UserID)"></td>
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="progress-thin flex-grow-1">
+                            <div class="bar" [ngClass]="assignedPoints(c.UserID) > capPoints(c) ? 'red' : 'green'"
+                              [style.width.%]="capPoints(c) ? (assignedPoints(c.UserID) / capPoints(c) * 100 > 100 ? 100 : assignedPoints(c.UserID) / capPoints(c) * 100) : 0"></div>
+                          </div>
+                          <small [class.text-danger]="assignedPoints(c.UserID) > capPoints(c)">{{ assignedPoints(c.UserID) }} of {{ capPoints(c) }}</small>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- two column planner -->
+      <div class="col-lg-6">
+        <div class="planner-col" [class.drag-over]="dragOver === 'backlog'"
+          (dragover)="onDragOver($event, 'backlog')" (dragleave)="onDragLeave($event, 'backlog')" (drop)="onDrop($event, 'backlog')">
+          <div class="planner-head">
+            <h6 class="mb-0">Backlog ({{ backlog.length }})</h6>
+            <div class="search position-relative icomoon icon-search">
+              <input type="text" placeholder="Search backlog" [(ngModel)]="backlogSearch" autocomplete="off" aria-label="Search backlog">
+            </div>
+          </div>
+          <div class="planner-body">
+            @for (i of filteredBacklog; track i.ID) {
+              <div class="plan-item" draggable="true" [class.dragging]="draggedId === i.ID" (dragstart)="onDragStart($event, i)" (dragend)="onDragEnd()">
+                <span class="title-col flex-grow-1 min-w-0">{{ ui.stripKey(i.Title) }}</span>
+                <span class="points-text">{{ i.StoryPoints == null ? 'Not estimated' : i.StoryPoints + ' story points' }}</span>
+                <button type="button" class="icon-btn" title="Add to sprint" (click)="addToSprint(i)"><fa-icon [icon]="faRight" /></button>
+              </div>
+            }
+            @if (!filteredBacklog.length) { <div class="empty-drop">The backlog is empty</div> }
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="planner-col sprint" [class.drag-over]="dragOver === 'sprint'" [class.over]="committed > capacityPoints"
+          (dragover)="onDragOver($event, 'sprint')" (dragleave)="onDragLeave($event, 'sprint')" (drop)="onDrop($event, 'sprint')">
+          <div class="planner-head">
+            <h6 class="mb-0">{{ sprint.Name }} ({{ sprintItems.length }})</h6>
+            <span class="pts-total" [class.text-danger]="committed > capacityPoints">{{ committed }} of {{ capacityPoints }} story points</span>
+          </div>
+          <div class="planner-body">
+            @for (i of sprintItems; track i.ID) {
+              <div class="plan-item" draggable="true" [class.dragging]="draggedId === i.ID" (dragstart)="onDragStart($event, i)" (dragend)="onDragEnd()">
+                <button type="button" class="icon-btn" title="Move back to backlog" (click)="removeFromSprint(i)"><fa-icon [icon]="faLeft" /></button>
+                <span class="title-col flex-grow-1 min-w-0">{{ ui.stripKey(i.Title) }}</span>
+                @if (i.AssigneeName) {
+                  <span class="avatar sm" [ngClass]="ui.avatarClass(i.AssigneeName)" [title]="i.AssigneeName">{{ ui.initials(i.AssigneeName) }}</span>
+                }
+                <span class="points-text">{{ i.StoryPoints == null ? 'Not estimated' : i.StoryPoints + ' story points' }}</span>
+              </div>
+            }
+            @if (!sprintItems.length) { <div class="empty-drop">Drag work here or use the arrow button</div> }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showComplete && activeSprint) {
+    <app-agile-complete-sprint [sprint]="activeSprint" [issues]="activeItems" [plannedSprints]="plannedSprints"
+      [note]="'Complete ' + activeSprint.Name + ' first — afterwards ' + (sprint?.Name || 'the new sprint') + ' starts automatically.'"
+      (completed)="onActiveCompleted()" (cancelled)="showComplete = false"></app-agile-complete-sprint>
+  }
+</div>

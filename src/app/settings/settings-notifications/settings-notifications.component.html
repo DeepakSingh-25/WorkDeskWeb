@@ -1,0 +1,248 @@
+<div class="breadcrumb-lite mb-1"><a routerLink="/settings">Settings</a> / Notifications</div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h2 class="fw-bold mb-0">Notifications</h2>
+    <p class="text-gray mb-0 fs-13">Choose what people are told about, and where.</p>
+  </div>
+</div>
+
+@if (n) {
+  <!-- Event x channel matrix -->
+  <div class="card-box mb-3">
+    <div class="card-head flex-wrap">
+      <h5>Tell people when…</h5>
+      <div class="d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-sm btn-light" [disabled]="!nDirty" (click)="discardNotifications()">Discard</button>
+        <button type="button" class="btn btn-sm btn-primary" [disabled]="!nDirty" (click)="saveNotifications()"><span class="icomoon icon-save me-1"></span> Save</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="notify-table">
+        <thead>
+          <tr>
+            <th class="text-start">Something happens</th>
+            @for (c of channels; track c.Key) {
+              <th>
+                <div>{{ c.Label }}</div>
+                <button type="button" class="link-btn" (click)="toggleCol(c.Key)">{{ colAll(c.Key) ? 'None' : 'All' }}</button>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (g of groups; track g) {
+            <tr class="group-row"><td [attr.colspan]="channels.length + 1">{{ g }}</td></tr>
+            @for (e of eventsOf(g); track e.Key) {
+              <tr>
+                <td class="text-start text-black" [title]="e.Description">{{ plainLabel(e) }}</td>
+                @for (c of channels; track c.Key) {
+                  <td>
+                    <div class="form-check form-switch m-0 d-inline-block">
+                      <input class="form-check-input" type="checkbox" role="switch" [(ngModel)]="e.Channels[c.Key]" [attr.aria-label]="plainLabel(e) + ' by ' + c.Label">
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Digest & quiet hours -->
+  <div class="card-box mb-3">
+    <div class="card-head flex-wrap">
+      <h5>Summary email and quiet time</h5>
+      <div class="d-flex gap-2 align-items-center">
+        <button type="button" class="btn btn-sm btn-primary" [disabled]="!nDirty" (click)="saveNotifications()"><span class="icomoon icon-save me-1"></span> Save</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="row row-gap-3">
+        <div class="col-lg-6">
+          <label class="form-label">Send a summary email</label>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            <div class="view-toggle d-inline-flex">
+              @for (f of digestOptions; track f.Value) {
+                <button type="button" [class.active]="n.DigestFrequency === f.Value" (click)="n.DigestFrequency = f.Value">{{ f.Label }}</button>
+              }
+            </div>
+            @if (n.DigestFrequency !== 'Off') {
+              <span class="fs-13 text-gray">at</span>
+              <input type="time" class="form-control form-control-sm w-auto" [(ngModel)]="n.DigestTime" aria-label="Summary email time">
+            }
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="setting-row pt-0">
+            <div><p class="text-black">Quiet time</p><small class="text-gray">No phone or Slack alerts during these hours.</small></div>
+            <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" [(ngModel)]="n.QuietEnabled" aria-label="Quiet time"></div>
+          </div>
+          @if (n.QuietEnabled) {
+            <div class="d-flex gap-2 align-items-center flex-wrap mt-2">
+              <span class="fs-13 text-gray">From</span>
+              <input type="time" class="form-control form-control-sm w-auto" [(ngModel)]="n.QuietFrom" aria-label="Quiet time from">
+              <span class="fs-13 text-gray">to</span>
+              <input type="time" class="form-control form-control-sm w-auto" [(ngModel)]="n.QuietTo" aria-label="Quiet time to">
+            </div>
+            <label class="form-label mt-3">And all day on</label>
+            <div class="d-flex gap-2 flex-wrap">
+              @for (d of ui.weekDays; track d) {
+                <span class="day-chip" role="button" tabindex="0" [class.active]="n.QuietDays.includes(d)" (click)="toggleQuietDay(d)" (keydown.enter)="toggleQuietDay(d)">{{ d }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced -->
+  <h6 class="fw-bold mt-4 mb-1">Advanced</h6>
+  <p class="text-gray fs-13 mb-2">Most teams can leave these as they are.</p>
+  <div class="d-flex flex-column gap-2">
+    <!-- Email sender + SMTP -->
+    <form class="card-box" [formGroup]="emailForm" (ngSubmit)="saveEmail()">
+      <button type="button" class="adv-toggle" (click)="toggleAdv('email')" [attr.aria-expanded]="adv === 'email'">
+        <span><b>Who emails come from</b><small>The sender name and address, or your own mail server (SMTP).</small></span>
+        <span class="chev" [class.open]="adv === 'email'">›</span>
+      </button>
+      @if (adv === 'email') {
+        <div class="card-body border-top">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="emName" class="form-label required">Sender name</label>
+              <input type="text" id="emName" class="form-control" formControlName="txtFromName">
+              @if (emailInvalid('txtFromName')) { <div class="text-danger fs-13">From Name is Required</div> }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="emFrom" class="form-label required">Sender email</label>
+              <input type="email" id="emFrom" class="form-control" formControlName="txtFromEmail">
+              @if (emailInvalid('txtFromEmail')) { <div class="text-danger fs-13">Valid From Email is Required</div> }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="emReply" class="form-label">Replies go to</label>
+              <input type="email" id="emReply" class="form-control" formControlName="txtReplyTo">
+              @if (emailInvalid('txtReplyTo')) { <div class="text-danger fs-13">Invalid email</div> }
+            </div>
+          </div>
+          <div class="smtp-box">
+            <div class="setting-row pt-0">
+              <div><p class="text-black">Use our own mail server (SMTP)</p><small class="text-gray">Off = we send emails for you.</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkSmtp" aria-label="Use our own mail server"></div>
+            </div>
+            @if (emailForm.value.chkSmtp) {
+              <div class="row mt-2">
+                <div class="col-md-8 mb-3">
+                  <label for="smHost" class="form-label required">Host</label>
+                  <input type="text" id="smHost" class="form-control" formControlName="txtHost" placeholder="smtp.example.com">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="smPort" class="form-label required">Port</label>
+                  <input type="number" id="smPort" class="form-control" formControlName="txtPort">
+                  @if (emailInvalid('txtPort')) { <div class="text-danger fs-13">1 – 65535</div> }
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="smUser" class="form-label">Username</label>
+                  <input type="text" id="smUser" class="form-control" formControlName="txtUsername" autocomplete="off">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="smPass" class="form-label" [class.required]="!passwordSet">Password</label>
+                  <input type="password" id="smPass" class="form-control" formControlName="txtPassword" autocomplete="new-password"
+                    [placeholder]="passwordSet ? '••••• saved' : 'Enter SMTP password'">
+                  @if (passwordSet) { <small class="text-gray">Saved. Leave blank to keep it.</small> }
+                </div>
+                <div class="col-md-6">
+                  <label for="smSec" class="form-label">Encryption</label>
+                  <select id="smSec" class="form-select" formControlName="drpSecurity">
+                    <option value="STARTTLS">STARTTLS (587)</option>
+                    <option value="SSL/TLS">SSL / TLS (465)</option>
+                    <option value="None">None (not recommended)</option>
+                  </select>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="d-flex gap-2 align-items-end flex-wrap mt-3">
+            <div class="flex-grow-1" style="min-width: 200px;">
+              <label for="tstTo" class="form-label">Send a test email to</label>
+              <input type="email" id="tstTo" class="form-control" [(ngModel)]="testTo" [ngModelOptions]="{ standalone: true }">
+            </div>
+            <button type="button" class="btn btn-outline" [disabled]="sendingTest" (click)="sendTestEmail()"><fa-icon [icon]="faSend" class="me-2" />{{ sendingTest ? 'Sending…' : 'Send test' }}</button>
+          </div>
+        </div>
+        <div class="sticky-actions d-flex gap-2">
+          <button type="submit" class="btn btn-primary" [disabled]="emailForm.pristine"><span class="icomoon icon-save me-2"></span> Save</button>
+          <button type="button" class="btn btn-danger" [disabled]="emailForm.pristine" (click)="loadEmail()"><span class="icomoon icon-cancel me-2"></span> Discard</button>
+        </div>
+      }
+    </form>
+
+    <!-- Templates -->
+    <div class="card-box">
+      <button type="button" class="adv-toggle" (click)="toggleAdv('tpl')" [attr.aria-expanded]="adv === 'tpl'">
+        <span><b>Email wording</b><small>Change the text of the emails we send.</small></span>
+        <span class="chev" [class.open]="adv === 'tpl'">›</span>
+      </button>
+      @if (adv === 'tpl') {
+        <div class="border-top">
+          <div class="row g-0">
+            <div class="col-lg-3 tpl-list">
+              @for (t of templates; track t.ID) {
+                <div class="tpl-item" role="button" tabindex="0" [class.active]="t.ID === tplId" (click)="selectTemplate(t)" (keydown.enter)="selectTemplate(t)">
+                  <div class="fw-600 text-black">{{ t.Name }}</div>
+                </div>
+              }
+            </div>
+            <div class="col-lg-9">
+              @if (tpl) {
+                <div class="p-3 p-md-4">
+                  <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
+                    <small class="text-gray">Last changed {{ ui.ago(tpl.UpdatedOn) }}</small>
+                    <div class="view-toggle">
+                      <button type="button" [class.active]="!showPreview" (click)="showPreview = false">Edit</button>
+                      <button type="button" [class.active]="showPreview" (click)="showPreview = true">Preview</button>
+                    </div>
+                  </div>
+                  @if (!showPreview) {
+                    <div class="mb-3">
+                      <label for="tplSubject" class="form-label required">Subject</label>
+                      <input type="text" id="tplSubject" class="form-control" [(ngModel)]="tpl.Subject" maxlength="200">
+                    </div>
+                    <label for="tplBody" class="form-label required">Message</label>
+                    <div class="d-flex gap-1 flex-wrap mb-2 align-items-center">
+                      <small class="text-gray me-1">Insert:</small>
+                      @for (ph of placeholders; track ph) {
+                        <button type="button" class="ph-chip" (click)="insertPlaceholder(ph, bodyArea)" title="Insert at cursor">{{ ph }}</button>
+                      }
+                    </div>
+                    <textarea #bodyArea id="tplBody" class="form-control mono" rows="10" [(ngModel)]="tpl.Body"></textarea>
+                    @if (unknownPlaceholders().length) {
+                      <div class="text-danger fs-13 mt-1">Unknown placeholder: {{ unknownPlaceholders().join(', ') }}</div>
+                    }
+                  } @else {
+                    <div class="mail-preview">
+                      <div class="mail-meta">
+                        <div><span class="text-gray">From:</span> {{ emailForm.value.txtFromName }} &lt;{{ emailForm.value.txtFromEmail }}&gt;</div>
+                        <div><span class="text-gray">To:</span> Priya Verma &lt;priya.verma&#64;example.com&gt;</div>
+                        <div class="fw-600 text-black mt-1">{{ render(tpl.Subject) }}</div>
+                      </div>
+                      <div class="mail-body">{{ render(tpl.Body) }}</div>
+                      <div class="mail-foot">Sent by {{ emailForm.value.txtFromName }} · Manage notification preferences</div>
+                    </div>
+                    <small class="text-gray d-block mt-2">Preview uses sample data.</small>
+                  }
+                  <div class="d-flex gap-2 mt-3">
+                    <button type="button" class="btn btn-primary" [disabled]="!tplDirty" (click)="saveTemplate()"><span class="icomoon icon-save me-2"></span> Save</button>
+                    <button type="button" class="btn btn-success" [disabled]="!tplDirty" (click)="resetTemplate()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

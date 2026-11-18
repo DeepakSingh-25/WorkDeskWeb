@@ -1,0 +1,173 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="team">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/team">Team</a> / Directory</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Team Directory</h2>
+      <p class="text-gray mb-0 fs-13">Find anyone in your workspace and how to reach them.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-primary" routerLink="/team/invite">+ Invite Members</button>
+    </div>
+  </div>
+  <app-team-nav></app-team-nav>
+
+  <!-- KPI tiles -->
+  <div class="row row-gap-3 mb-3">
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-1 p-3 cursor-pointer" (click)="clearFilters()">
+        <h5>{{ kpi.total }}</h5><p>Members</p>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-3 p-3 cursor-pointer" (click)="status = 'Active'; showMoreFilters = true">
+        <h5>{{ kpi.active }}</h5><p>Active</p>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-4 p-3 cursor-pointer" (click)="status = 'Invited'; showMoreFilters = true">
+        <h5>{{ kpi.invited }}</h5><p>Waiting to join</p>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-2 kpi-neutral p-3">
+        <h5>{{ kpi.departments }}</h5><p>Departments</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters: search + 2 visible, rest under More filters -->
+  <div class="filter-bar d-flex gap-2 flex-wrap align-items-center mb-3">
+    <div class="search position-relative icomoon icon-search team-search">
+      <input type="text" placeholder="Search people or skills" [(ngModel)]="searchValue" autocomplete="off" aria-label="Search people">
+    </div>
+    <select class="form-select form-select-sm w-auto" [(ngModel)]="departmentID" (ngModelChange)="onDepartmentChange()" aria-label="Department">
+      <option [ngValue]="null">All departments</option>
+      @for (d of departments; track d.ID) { <option [ngValue]="d.ID">{{ d.Name }}</option> }
+    </select>
+    <select class="form-select form-select-sm w-auto" [(ngModel)]="teamID" aria-label="Team">
+      <option [ngValue]="null">All teams</option>
+      @for (t of teamOptions; track t.ID) { <option [ngValue]="t.ID">{{ t.Name }}</option> }
+    </select>
+    <button type="button" class="btn btn-outline btn-sm" (click)="showMoreFilters = !showMoreFilters">
+      {{ showMoreFilters ? 'Fewer filters' : 'More filters' }}
+    </button>
+    @if (hasFilters) {
+      <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger" (click)="clearFilters()">Clear</button>
+    }
+    <div class="ms-auto view-toggle">
+      <button type="button" [class.active]="view === 'grid'" (click)="view = 'grid'" title="Cards">&#9638;</button>
+      <button type="button" [class.active]="view === 'table'" (click)="view = 'table'" title="Table">&#9776;</button>
+    </div>
+    @if (showMoreFilters) {
+      <div class="w-100 d-flex gap-2 flex-wrap">
+        <select class="form-select form-select-sm w-auto" [(ngModel)]="location" aria-label="Location">
+          <option value="">All locations</option>
+          @for (l of locations; track l) { <option [value]="l">{{ l }}</option> }
+        </select>
+        <select class="form-select form-select-sm w-auto" [(ngModel)]="status" aria-label="Status">
+          <option value="">Any status</option>
+          @for (s of statusOptions; track s) { <option [value]="s">{{ s }}</option> }
+        </select>
+      </div>
+    }
+  </div>
+
+  @if (view === 'grid') {
+    <div class="row row-gap-3">
+      @for (e of filtered; track e.Key) {
+        <div class="col-sm-6 col-lg-4 col-xxl-3">
+          <div class="project-card person-card" [class.invited]="e.Status === 'Invited'" [class.inactive]="e.Status === 'Inactive'" (click)="open(e)">
+            <div class="d-flex align-items-center gap-2">
+              <span class="avatar lg" [ngClass]="ui.avatarClass(e.Name)">{{ ui.initials(e.Name) }}</span>
+              <div class="min-w-0 flex-grow-1">
+                <h6 class="mb-0 text-truncate">{{ e.Name }}</h6>
+                <div class="text-gray fs-13 text-truncate">{{ e.Designation }}</div>
+              </div>
+              @if (e.Status !== 'Active') {
+                <span class="pill" [ngClass]="ui.memberStatusClass(e.Status)">{{ e.Status }}</span>
+              }
+            </div>
+            <div class="fs-13 text-truncate">
+              {{ teamName(e.TeamID) || 'No team' }} · {{ e.Email }}
+            </div>
+            @if (e.Skills.length) {
+              <div class="d-flex gap-1">
+                <span class="label-chip">{{ e.Skills[0] }}</span>
+                @if (e.Skills.length > 1) { <span class="label-chip">+{{ e.Skills.length - 1 }}</span> }
+              </div>
+            }
+          </div>
+        </div>
+      }
+      @if (filtered.length === 0) {
+        <div class="col-12 text-center py-4">
+          <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+          <h6>No one matches these filters.</h6>
+          <button type="button" class="btn btn-outline btn-sm" (click)="clearFilters()">Clear filters</button>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="p-0 table-certificate shadow table-responsive">
+      <table class="table rounded table-striped align-middle">
+        <thead>
+          <tr class="lightblue">
+            <th>Name <a class="ms-1 cursor-pointer" (click)="orderBy('Name')"><img [src]="sortIcon('Name')" alt="arrow"></a></th>
+            <th>Job title <a class="ms-1 cursor-pointer" (click)="orderBy('Designation')"><img [src]="sortIcon('Designation')" alt="arrow"></a></th>
+            <th>Team</th>
+            <th>Email</th>
+            <th>Location <a class="ms-1 cursor-pointer" (click)="orderBy('Location')"><img [src]="sortIcon('Location')" alt="arrow"></a></th>
+            <th>Status <a class="ms-1 cursor-pointer" (click)="orderBy('Status')"><img [src]="sortIcon('Status')" alt="arrow"></a></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of filtered; track e.Key) {
+            <tr class="content row-click" (click)="open(e)">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="avatar" [ngClass]="ui.avatarClass(e.Name)">{{ ui.initials(e.Name) }}</span>
+                  <span class="link-name">{{ e.Name }}</span>
+                </div>
+              </td>
+              <td>{{ e.Designation }}</td>
+              <td>{{ teamName(e.TeamID) || '—' }}</td>
+              <td class="fs-13">{{ e.Email }}</td>
+              <td>{{ e.Location || '—' }}</td>
+              <td><span class="pill" [ngClass]="ui.memberStatusClass(e.Status)">{{ e.Status }}</span></td>
+            </tr>
+          }
+        </tbody>
+        <tbody>
+          @if (filtered.length === 0) {
+            <tr class="content">
+              <td colspan="6" class="text-center text-black">
+                <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+                <h6>No Record Found</h6>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pt-3"><p class="totRecords mb-0">Records Found : {{ filtered.length }}</p></div>
+  }
+
+  <!-- Pending invites -->
+  <div class="card-box mt-4">
+    <div class="card-head">
+      <h5>Waiting to join</h5>
+      <a routerLink="/team/invite" class="fs-13">Manage invites</a>
+    </div>
+    <div class="card-body py-1">
+      @for (i of invites; track i.ID) {
+        <div class="simple-row">
+          <span class="avatar" style="background:#8A94A6">{{ ui.initials(i.Email) }}</span>
+          <span class="simple-text"><b>{{ i.Email }}</b> was invited to join {{ teamName(i.TeamID) || 'the workspace' }}</span>
+          <button type="button" class="icon-btn" title="Send the invite again" (click)="resend(i, $event)"><span class="icomoon icon-mail"></span></button>
+        </div>
+      } @empty {
+        <div class="text-center text-gray py-3 fs-13">Nobody is waiting to join. <a routerLink="/team/invite">Invite someone</a></div>
+      }
+    </div>
+  </div>
+</div>

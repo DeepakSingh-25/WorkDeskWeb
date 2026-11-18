@@ -1,0 +1,59 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60" id="task">
+  <app-task-view-tabs title="Kanban Board" subtitle="Drag a card to another column to change its status." [keepParams]="keepParams"></app-task-view-tabs>
+
+  <div class="py-3">
+    <app-task-filter-bar [page]="this"></app-task-filter-bar>
+  </div>
+
+  <div class="board">
+    @for (col of columns; track col.status) {
+      <div class="board-col" [class.drag-over]="dragOverStatus === col.status"
+        (dragover)="onDragOver($event, col.status)" (dragleave)="onDragLeave($event, col.status)" (drop)="onDrop($event, col.status)">
+        <div class="board-col-head">
+          <h6><span class="bullet" [style.background]="ui.statusColor(col.status)"></span>{{ col.status }}
+            <span class="pill st-notstarted" style="padding:0 8px">{{ col.tasks.length }}</span></h6>
+        </div>
+
+        <div class="board-col-body">
+          @for (t of col.tasks; track t.ID) {
+            <div class="board-card" draggable="true" [class.dragging]="draggedId === t.ID"
+              (dragstart)="onDragStart($event, t)" (dragend)="onDragEnd()" (click)="openTask(t.ID)">
+              <div class="title">{{ ui.stripKey(t.Title) }}</div>
+              <div class="d-flex justify-content-between align-items-center gap-2">
+                <small [ngClass]="ui.dueClass(t)" [class.text-gray]="!ui.dueClass(t)">{{ t.DueDate ? ui.dueLabel(t) : '' }}</small>
+                <div class="d-flex gap-2 align-items-center">
+                  @if (t.Priority === 'High' || t.Priority === 'Critical') {
+                    <small class="fw-600" [ngClass]="ui.priorityClass(t.Priority)">{{ t.Priority }}</small>
+                  }
+                  @if (t.AssigneeName) {
+                    <span class="avatar card-avatar" [ngClass]="ui.avatarClass(t.AssigneeName)" [title]="t.AssigneeName">{{ ui.initials(t.AssigneeName) }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+          @if (col.tasks.length === 0) {
+            <div class="text-center text-gray fs-13 py-3">Drop tasks here</div>
+          }
+
+          @if (quickAddStatus === col.status) {
+            <div class="board-card" style="cursor: default;">
+              <input id="quickAddInput" type="text" class="form-control form-control-sm" placeholder="Task title, press Enter"
+                [(ngModel)]="quickAddTitle" (keydown.enter)="saveQuickAdd(col.status)" (keydown.escape)="quickAddStatus = null" maxlength="150">
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm py-1" (click)="saveQuickAdd(col.status)">Add</button>
+                <button class="btn btn-sm btn-link text-decoration-none text-gray" (click)="quickAddStatus = null">Cancel</button>
+              </div>
+            </div>
+          } @else {
+            <button type="button" class="quick-add" (click)="startQuickAdd(col.status)" [title]="projectID ? '' : 'Opens the create form'">+ Add task</button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (drawerTaskId) {
+    <app-task-drawer [taskId]="drawerTaskId" (closed)="closeTask()" (changed)="onTaskChanged($event)"></app-task-drawer>
+  }
+</div>

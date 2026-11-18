@@ -1,0 +1,12 @@
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+  <div>
+    <h2 class="fw-bold mb-0">{{ title }}</h2>
+    @if (subtitle) { <p class="text-gray mb-0 fs-13">{{ subtitle }}</p> }
+  </div>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <nav class="view-tabs">
+      <a routerLink="/tasks" [queryParams]="keepParams" routerLinkActive="active" [routerLinkActiveOptions]="activeOptions"><fa-icon [icon]="faList" /> List</a>
+      <a routerLink="/tasks/board" [queryParams]="keepParams" routerLinkActive="active" [routerLinkActiveOptions]="activeOptions"><fa-icon [icon]="faBoard" /> Board</a>    </nav>
+    <button type="button" class="btn btn-primary" routerLink="/tasks/create" [queryParams]="keepParams">+ Create Task</button>
+  </div>
+</div>

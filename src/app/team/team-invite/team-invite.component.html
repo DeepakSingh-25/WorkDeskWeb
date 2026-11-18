@@ -1,0 +1,167 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="team">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/team">Team</a> / Invite Members</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Invite Team Members</h2>
+      <p class="text-gray mb-0 fs-13">Add people by email and choose their role and team.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline" routerLink="/team">Back to Directory</button>
+    </div>
+  </div>
+  <app-team-nav></app-team-nav>
+
+  <form [formGroup]="inviteForm" (ngSubmit)="onSend()">
+    <div class="card-box">
+      <div class="card-head">
+        <h5>People to invite</h5>
+        <small class="text-gray">{{ validCount }} ready to send</small>
+      </div>
+      <div class="card-body">
+        <div formArrayName="Rows" class="d-flex flex-column gap-2">
+          <div class="invite-row d-none d-md-grid text-gray fs-13 fw-600">
+            <span>Email address</span><span>Role</span><span>Team</span><span></span>
+          </div>
+          @for (r of rows.controls; track r; let i = $index) {
+            <div [formGroupName]="i">
+              <div class="invite-row">
+                <div>
+                  <label [for]="'invEmail' + i" class="form-label d-md-none required">Email</label>
+                  <input type="email" class="form-control" [id]="'invEmail' + i" formControlName="txtEmail" placeholder="name@company.com"
+                    autocomplete="off" [class.is-invalid]="!!rowError(i)">
+                </div>
+                <div>
+                  <label [for]="'invRole' + i" class="form-label d-md-none required">Role</label>
+                  <select class="form-select" [id]="'invRole' + i" formControlName="drpRole">
+                    @for (ro of roles; track ro.ID) { <option [ngValue]="ro.ID">{{ ro.Name }}</option> }
+                  </select>
+                </div>
+                <div>
+                  <label [for]="'invTeam' + i" class="form-label d-md-none">Team</label>
+                  <select class="form-select" [id]="'invTeam' + i" formControlName="drpTeam">
+                    <option [ngValue]="null">No team</option>
+                    @for (t of teams; track t.ID) { <option [ngValue]="t.ID">{{ t.Name }}</option> }
+                  </select>
+                </div>
+                <div class="text-end">
+                  <button type="button" class="icon-btn danger" title="Remove" (click)="removeRow(i)"><span class="icomoon icon-delete"></span></button>
+                </div>
+              </div>
+              @if (rowError(i)) { <div class="text-danger fs-13 mt-1">{{ rowError(i) }}</div> }
+            </div>
+          }
+        </div>
+        <button type="button" class="quick-add mt-3" (click)="addRow()">+ Add another person</button>
+
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <button type="button" class="btn btn-outline btn-sm" (click)="showMoreOptions = !showMoreOptions">
+            {{ showMoreOptions ? 'Hide more options' : 'More options' }}
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" (click)="showPreview = !showPreview">
+            {{ showPreview ? 'Hide email preview' : 'Preview email' }}
+          </button>
+        </div>
+
+        @if (showMoreOptions) {
+          <div class="mt-3">
+            <label for="invBulk" class="form-label">Paste many emails at once</label>
+            <div class="d-flex gap-2 align-items-start flex-wrap flex-md-nowrap">
+              <textarea id="invBulk" class="form-control" rows="2" formControlName="txtBulk"
+                placeholder="meera@company.com, arjun@company.com"></textarea>
+              <button type="button" class="btn btn-outline text-nowrap" (click)="addBulk()">Add to list</button>
+            </div>
+            <label for="invMessage" class="form-label mt-3">Personal message</label>
+            <textarea id="invMessage" class="form-control" rows="3" formControlName="txtMessage" maxlength="500"
+              placeholder="Hi! Join us so we can plan the next sprint together."></textarea>
+            <div class="text-end text-gray fs-13">{{ inviteForm.value.txtMessage?.length || 0 }}/500</div>
+          </div>
+        }
+
+        @if (showPreview) {
+          <div class="mail-preview mt-3">
+            <div class="mail-meta fs-13">
+              <div><span class="text-gray">To:</span> {{ previewRow.email }}</div>
+              <div><span class="text-gray">Subject:</span> {{ inviterName }} invited you to join the workspace</div>
+            </div>
+            <div class="mail-body">
+              <h6 class="fw-bold">You're invited!</h6>
+              <p class="fs-13 mb-2"><b>{{ inviterName }}</b> has invited you to join as <b>{{ previewRow.role }}</b>@if (previewRow.team) { in the <b>{{ previewRow.team }}</b> team}.</p>
+              @if (inviteForm.value.txtMessage) {
+                <blockquote class="mail-quote fs-13">“{{ inviteForm.value.txtMessage }}”</blockquote>
+              }
+              <span class="mail-btn">Accept invitation</span>
+              <p class="text-gray mt-3 mb-0" style="font-size: 11px;">This link stops working after 7 days.</p>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="sticky-actions d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <small class="text-gray">Demo mode: no real email is sent.</small>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-success" (click)="onReset()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+          <button type="submit" class="btn btn-primary"><span class="icomoon icon-mail me-2"></span> Send {{ validCount || '' }} Invite{{ validCount === 1 ? '' : 's' }}</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Invites table -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 mb-3">
+    <h5 class="fw-bold mb-0">Sent invites</h5>
+    <div class="status-tabs">
+      @for (s of ['Pending', 'Expired', 'Revoked', '']; track s) {
+        <button type="button" [class.active]="inviteFilter === s" (click)="inviteFilter = s">{{ s || 'All' }}<span class="count">{{ countBy(s) }}</span></button>
+      }
+    </div>
+  </div>
+  <div class="p-0 table-certificate shadow table-responsive">
+    <table class="table rounded table-striped align-middle">
+      <thead>
+        <tr class="lightblue">
+          <th>Email</th>
+          <th>Role</th>
+          <th>Team</th>
+          <th>Expires</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (i of filteredInvites; track i.ID) {
+          <tr class="content">
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="avatar" style="background:#8A94A6">{{ ui.initials(i.Email) }}</span>
+                <span class="text-black">{{ i.Email }}</span>
+              </div>
+            </td>
+            <td>{{ ui.roleName(i.RoleID) }}</td>
+            <td>{{ teamName(i.TeamID) || '—' }}</td>
+            <td>{{ expiresLabel(i) || (i.ExpiresOn | date:'dd MMM yyyy') }}</td>
+            <td><span class="pill" [ngClass]="ui.memberStatusClass(i.Status)">{{ i.Status }}</span></td>
+            <td>
+              <div class="d-flex gap-1">
+                @if (i.Status !== 'Accepted') {
+                  <button type="button" class="icon-btn success" title="Send again" (click)="resend(i)"><span class="icomoon icon-mail"></span></button>
+                }
+                @if (i.Status === 'Pending') {
+                  <button type="button" class="icon-btn danger" title="Cancel invite" (click)="revoke(i)"><span class="icomoon icon-cancel"></span></button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+      <tbody>
+        @if (filteredInvites.length === 0) {
+          <tr class="content">
+            <td colspan="6" class="text-center text-black">
+              <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+              <h6>No Record Found</h6>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

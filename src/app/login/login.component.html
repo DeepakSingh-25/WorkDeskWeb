@@ -1,0 +1,80 @@
+<section class="min-vh-100 bg-sec1 d-flex align-items-center ">
+  <div class="container py-3 py-sm-5">
+    <div class="row align-items-center">
+      <div class="col-12 col-md-6 col-xl-5 ">
+        <div class="form-shado p-4 p-sm-5 rounded-5 bg-white">
+          <img src="../../assets/images/workdesk/workdesk-logo.svg" alt="WorkDesk" style="height:48px;width:auto" class="mb-3 mb-sm-4">
+          <h2 class="pb-2 pb-sm-4 text">Login</h2>
+          <form [formGroup]="loginForm">
+            <div class="mb-3">
+              <label for="exampleInputEmail1" class="form-label fw-medium">User ID</label>
+              <input type="email" placeholder="Email" class="form-control" formControlName="txtUserID"
+                autocomplete="off" id="exampleInputEmail1" maxlength="100" aria-describedby="emailHelp">
+                <div class="text-danger">
+                  @if (loginForm.controls['txtUserID'].touched && loginForm.controls['txtUserID'].errors?.['required']) {
+                    <span
+                      >
+                      User ID Is Required
+                    </span>
+                  }
+                  @if (loginForm.controls['txtUserID'].touched && loginForm.controls['txtUserID'].errors?.['email']) {
+                    <span
+                      >
+                      Please enter a valid email address
+                    </span>
+                  }
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label fw-medium">Password</label>
+                <div style="position: relative;">
+                  <input [type]="showPassword ? 'text' : 'password'" placeholder="Password" class="form-control"
+                    formControlName="txtPassword" autocomplete="off" maxlength="50"
+                    id="exampleInputPassword1">
+                    <span class="pass-icon" (click)="togglePasswordVisibility()">
+                      @if (!showPassword) {
+                        <svg style="cursor: pointer;" width="21" height="19"
+                          viewBox="0 0 21 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M20.7346 9.05099L20.6587 9.20229C19.7165 11.0825 18.2762 12.6698 16.4939 13.7931C14.6621 14.9477 12.5436 15.5578 10.368 15.5578C9.41203 15.5578 8.46707 15.4399 7.55273 15.2098L7.8317 14.9308L8.11336 14.6491L9.51852 13.244C9.79321 13.2996 10.0771 13.3288 10.368 13.3288C12.7269 13.3288 14.6459 11.4099 14.6459 9.05099C14.6459 8.76009 14.6166 8.47618 14.561 8.2015L17.1601 5.60236L17.3938 5.36865L17.6341 5.12842C18.8942 6.1551 19.9268 7.43891 20.6587 8.89969L20.7346 9.05099Z"
+                            fill="#ACACAC" />
+                            <path
+                              d="M18.3031 0L14.8516 3.45156C13.4413 2.85468 11.9186 2.5442 10.3666 2.5442C8.19097 2.5442 6.07276 3.15436 4.24093 4.30893C2.45864 5.4322 1.01836 7.01951 0.0758757 8.89974L0 9.05105L0.0758757 9.20235C1.01836 11.0826 2.45864 12.6699 4.24093 13.7932C4.29609 13.8278 4.35148 13.8623 4.40709 13.8961L1.31555 16.9876L2.43005 18.1021L8.43909 12.0931L10.0142 10.5179L11.8335 8.69869L19.4176 1.11449L18.3031 0ZM10.719 7.58419C10.6059 7.55695 10.488 7.54254 10.3666 7.54254C9.53489 7.54254 8.85809 8.21934 8.85809 9.05105C8.85809 9.1724 8.8725 9.29038 8.89974 9.40341L7.32459 10.9786L6.83737 11.4658C6.36523 10.7782 6.08874 9.94624 6.08874 9.05105C6.08874 6.69214 8.0077 4.77319 10.3666 4.77319C11.2618 4.77319 12.0937 5.04967 12.7813 5.52181L10.719 7.58419Z"
+                              fill="#ACACAC" />
+                            </svg>
+                          }
+
+                          @if (showPassword) {
+                            <svg style="cursor: pointer;" width="21" height="19"
+                              viewBox="0 0 21 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path
+                                d="M10.5 2C5 2 1 9 1 9s4 7 9.5 7S20 9 20 9s-4.5-7-9.5-7zm0 12c-4.14 0-7.5-3.36-7.5-5s3.36-5 7.5-5 7.5 3.36 7.5 5-3.36 5-7.5 5z"
+                                fill="#ACACAC" />
+                                <circle cx="10.5" cy="9" r="3" fill="#ACACAC" />
+                              </svg>
+                            }
+                          </span>
+                        </div>
+                        <div class="text-danger">
+                          @if (loginForm.controls['txtPassword'].touched && loginForm.controls['txtPassword'].errors?.['required']) {
+                            <span
+                              >
+                              Password Is Required
+                            </span>
+                          }
+                        </div>
+                      </div>
+                      <div class="text-end pb-3"><a routerLink="/forgot">Forgot Password?</a></div>
+                      <button type="submit " class="btn btn-primary w-100 mb-4" (click)="onLogin()">Log In</button>
+                      <p class="text-center">Click here to Register in Account <a class="text-blue link-underline"
+                      routerLink="/signup">Sign Up </a></p>
+                    </form>
+                  </div>
+
+                </div>
+                <div class="col-12 col-md-6 col-xl-7">
+                  <img src="../../assets/images/login/login.webp" width="100%" class="mt-4 mt-md-0">
+                </div>
+              </div>
+            </div>
+          </section>

@@ -1,0 +1,11 @@
+@if (visible) {
+  <div class="alert license-banner d-flex align-items-center gap-2 mb-0 rounded-0 py-2 px-3"
+    [class.alert-danger]="danger" [class.alert-warning]="!danger" role="status">
+    <fa-icon [icon]="faWarn" />
+    <span class="flex-grow-1">{{ text }}</span>
+    @if (canSeeBilling) {
+      <a routerLink="/settings/billing" class="fw-600 text-nowrap">Plan &amp; License</a>
+    }
+    <button type="button" class="btn-close btn-sm" aria-label="Dismiss" title="Dismiss" (click)="dismiss()"></button>
+  </div>
+}

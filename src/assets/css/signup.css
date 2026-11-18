@@ -1,0 +1,15 @@
+.bg-sec1 {background-image: url("../images/sign-up/sing_up-bg.webp");background-position: center center;background-repeat: no-repeat;background-size: cover;overflow-y: scroll;  height: 100dvh;}
+.border-top {border-top: solid 1px black;}
+#or p{background-color: #fff;padding: 10px;position: absolute;left: 50%;top: 0;transform: translate(-50%, -50%);width: 5%;}
+.shadowf{box-shadow: 1px 1px 23px rgba(0, 0, 0, 0.12);}
+
+/* modal */
+
+.modal-header{border-bottom: 0px;}
+.modal-footer{border-top: 0px;}
+#exampleModalToggle .close-btn{top: 20px; right: 20px;}
+#exampleModalToggle input{outline: none; box-shadow: none; border: 1px solid #000;}
+#exampleModalToggle ::placeholder {
+    color: #000;text-decoration: none;
+  }
+.otp{border-radius: 10px;}

@@ -1,0 +1,101 @@
+/* ================= Reports & Analytics ================= */
+/* shared building blocks (cards, pills, tables, avatars, tabs) come from project.css / task.css via .pm-page */
+
+#reports .min-w-0{min-width: 0;}
+#reports .avatar.sm{width: 28px; height: 28px; font-size: 10px;}
+#reports .chart-note{font-size: 13px; color: #6F7890; margin: -4px 0 6px;}
+#reports .empty-note{text-align: center; color: #8A94A6; font-size: 13px; padding: 28px 12px; background: #F8FAFF; border: 1px dashed #CAD8FF; border-radius: 10px;}
+
+/* ---------- filter bar ---------- */
+#reports .report-filter{padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 4px;}
+#reports .preset-tabs{display: inline-flex; flex-wrap: wrap; background: #F4F7FF; border: 1px solid #CAD8FF; border-radius: 10px; padding: 3px; gap: 2px;}
+#reports .preset-tabs button{border: none; background: transparent; padding: 5px 12px; border-radius: 8px; font-size: 13px; color: #4A5468; font-weight: 500; white-space: nowrap;}
+#reports .preset-tabs button:hover{color: #0043E0;}
+#reports .preset-tabs button.active{background: #0043E0; color: #fff; box-shadow: 0 2px 6px rgba(0, 67, 224, .25);}
+#reports .date-range input{width: 150px;}
+#reports .report-filter .project-multi{min-width: 220px; max-width: 320px;}
+#reports .report-filter .ng-select.ng-select-multiple .ng-select-container{min-height: 31px; border-radius: 6px; font-size: 14px;}
+
+/* ---------- export dropdown ---------- */
+#reports .export-menu{position: relative;}
+#reports .export-menu > .btn{display: inline-flex; align-items: center;}
+/* certificate.css paints every .icon-download black; on the blue button it must follow the text colour */
+#reports .export-menu > .btn .icomoon::before{color: inherit;}
+#reports .export-pop{position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 240px; background: #fff; border: 1px solid #CAD8FF; border-radius: 12px; box-shadow: 0 12px 28px rgba(16, 38, 94, .16); padding: 6px; animation: rpPop .12s ease-out;}
+#reports .export-pop .pop-head{font-size: 12px; font-weight: 600; color: #333; padding: 6px 10px 8px; border-bottom: 1px solid #EEF2FC; margin-bottom: 4px;}
+#reports .export-pop .pop-item{display: flex; align-items: center; gap: 10px; width: 100%; border: none; background: transparent; text-align: left; padding: 8px 10px; border-radius: 8px; font-size: 13px;}
+#reports .export-pop .pop-item:hover{background: #F4F7FF;}
+@keyframes rpPop{from{opacity: 0; transform: translateY(-4px);} to{opacity: 1; transform: none;}}
+#reports .fmt-icon{width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;}
+#reports .fmt-excel{background: #E4F6EC; color: #029848;}
+#reports .fmt-csv{background: #EAF0FF; color: #0043E0;}
+#reports .fmt-pdf{background: #FFEDEA; color: #E0401C;}
+
+/* ---------- KPI tiles ---------- */
+#reports .kpi-tile h5{font-size: 22px; font-weight: 700;}
+#reports .kpi-tile p{font-size: 13px;}
+#reports .dashboard-box small{font-size: 12px;}
+
+/* ---------- lists ---------- */
+#reports .contrib-row{display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #EEF2FC;}
+#reports .contrib-row:last-of-type{border-bottom: none;}
+#reports .fair-note{font-size: 12px; color: #6F7890; background: #F4F7FF; border-left: 3px solid #0043E0; padding: 8px 10px; border-radius: 6px;}
+#reports .mock-note{font-size: 12px; color: #8A5A00; background: #FFF6E5; border: 1px solid #FFE1A8; padding: 7px 12px; border-radius: 8px;}
+
+/* ---------- project performance ---------- */
+#reports .report-table tr.expanded td{background: #F0F5FF !important;}
+#reports .var-chip{display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px;}
+#reports .var-chip.pos{background: #E4F6EC; color: #029848;}
+#reports .var-chip.warn{background: #FFF3DF; color: #C77800;}
+#reports .var-chip.neg{background: #FFEDEA; color: #E0401C;}
+#reports tr.ms-detail-row > td{background: #F8FAFF !important; padding: 0 !important;}
+#reports .ms-detail{padding: 14px 18px 18px; border-left: 3px solid #0043E0;}
+
+/* ---------- time & effort heat table ---------- */
+#reports .heat-table{width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px;}
+#reports .heat-table th{background: #F4F7FF; color: #333; font-weight: 600; padding: 10px 12px; text-align: center; white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid #CAD8FF;}
+#reports .heat-table td{padding: 8px 12px; text-align: center; border-bottom: 1px solid #EEF2FC; white-space: nowrap;}
+#reports .heat-table td.cell{font-weight: 600; font-variant-numeric: tabular-nums; border: 2px solid #fff; border-radius: 6px; min-width: 70px;}
+#reports .heat-table .sticky-col{position: sticky; left: 0; background: #fff; text-align: left; z-index: 1; min-width: 170px;}
+#reports .heat-table th.sticky-col{background: #F4F7FF;}
+#reports .heat-table .total{font-weight: 700; color: #0043E0; background: #F8FAFF;}
+#reports .heat-table tfoot td{font-weight: 700; background: #F8FAFF; border-top: 1px solid #CAD8FF;}
+#reports .heat-table tfoot td.sticky-col{background: #F8FAFF;}
+
+/* ---------- productivity ---------- */
+#reports .spark-cell{min-width: 130px; padding-top: 2px !important; padding-bottom: 2px !important;}
+
+/* ---------- export center ---------- */
+#reports .ds-card{width: 100%; height: 100%; text-align: left; background: #fff; border: 1px solid #CAD8FF; border-radius: 12px; padding: 14px; transition: border-color .15s, box-shadow .15s;}
+#reports .ds-card:hover{border-color: #0043E0;}
+#reports .ds-card.active{border-color: #0043E0; background: #F4F7FF; box-shadow: 0 0 0 3px rgba(0, 67, 224, .12);}
+#reports .ds-card .ds-icon{width: 36px; height: 36px; border-radius: 10px; background: #EAF0FF; color: #0043E0; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;}
+#reports .ds-card.active .ds-icon{background: #0043E0; color: #fff;}
+#reports .section-num, #reports .section-title .num{display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: #0043E0; color: #fff; font-size: 12px; align-items: center; justify-content: center; margin-right: 6px;}
+#reports .col-list{list-style: none; padding: 0; margin: 0; max-height: 440px; overflow-y: auto;}
+#reports .col-list li{display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 1px solid #EEF2FC; border-radius: 8px; margin-bottom: 6px; background: #fff; cursor: grab; font-size: 13px;}
+#reports .col-list li label{cursor: pointer;}
+#reports .col-list li.dragging{opacity: .45;}
+#reports .col-list li.drag-over{border-color: #0043E0; border-style: dashed; background: #F4F7FF;}
+#reports .col-list .grip{color: #A9B3C7;}
+#reports .col-list .move-btns{display: none;}
+#reports .col-list .move-btns .icon-btn{width: 24px; height: 24px; font-size: 13px;}
+#reports .col-list .move-btns .icon-btn:disabled{opacity: .3; cursor: default;}
+#reports .col-list li:hover .move-btns{display: inline-flex;}
+#reports .fmt-choice{display: flex; gap: 8px; flex-wrap: wrap;}
+#reports .fmt-choice button{display: inline-flex; align-items: center; gap: 8px; border: 1px solid #CAD8FF; background: #fff; border-radius: 10px; padding: 5px 14px 5px 6px; font-weight: 500;}
+#reports .fmt-choice button.active{border-color: #0043E0; box-shadow: 0 0 0 3px rgba(0, 67, 224, .12); color: #0043E0;}
+#reports .preview-wrap{max-height: 380px; overflow: auto;}
+#reports .preview-table{font-size: 12px;}
+#reports .preview-table th{position: sticky; top: 0; background: #F4F7FF; font-weight: 600; white-space: nowrap; z-index: 1;}
+#reports .preview-table td{white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis;}
+#reports .schedule-form{border-color: #0043E0;}
+
+/* ---------- responsive ---------- */
+@media (max-width: 767px){
+    #reports .report-filter{flex-direction: column; align-items: stretch;}
+    #reports .report-filter .project-multi{min-width: 0; max-width: none; flex: 1 1 100%;}
+    #reports .date-range input{width: 100%;}
+    #reports .export-pop{right: auto; left: 0;}
+    #reports .col-list .move-btns{display: inline-flex;}
+}

@@ -1,0 +1,106 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60" id="task">
+  <app-task-view-tabs title="Tasks" subtitle="All your tasks in one place." [keepParams]="keepParams"></app-task-view-tabs>
+
+  <div class="py-3">
+    <app-task-filter-bar [page]="this"></app-task-filter-bar>
+  </div>
+
+  <div class="status-tabs mb-3">
+    @for (s of statusTabs; track s) {
+      <button type="button" [class.active]="statusTab === s" (click)="setStatusTab(s)">
+        {{ s === 'Overdue' ? 'Late' : (s || 'All') }}<span class="count">{{ counts[s || 'All'] ?? 0 }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="p-0 table-certificate shadow table-responsive">
+    <table class="table rounded table-striped align-middle">
+      <thead>
+        <tr class="lightblue">
+          <th>Task <a class="ms-1 cursor-pointer" (click)="orderBy('Title')"><img [src]="sortIcon('Title')" alt="arrow"></a></th>
+          <th>Assignee</th>
+          <th>Status <a class="ms-1 cursor-pointer" (click)="orderBy('Status')"><img [src]="sortIcon('Status')" alt="arrow"></a></th>
+          <th>Priority <a class="ms-1 cursor-pointer" (click)="orderBy('Priority')"><img [src]="sortIcon('Priority')" alt="arrow"></a></th>
+          <th>Due <a class="ms-1 cursor-pointer" (click)="orderBy('DueDate')"><img [src]="sortIcon('DueDate')" alt="arrow"></a></th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of taskData; track t.ID) {
+          <tr class="content row-click" (click)="openTask(t.ID)">
+            <td class="task-title">
+              <span class="link-name">{{ ui.stripKey(t.Title) }}</span>
+              @if (t.IsBlocked) { <span class="blocked-chip ms-2">Waiting</span> }
+            </td>
+            <td>
+              @if (t.AssigneeName) {
+                <div class="d-flex align-items-center gap-2">
+                  <span class="avatar small-avatar" [ngClass]="ui.avatarClass(t.AssigneeName)">{{ ui.initials(t.AssigneeName) }}</span>
+                  {{ t.AssigneeName }}
+                </div>
+              } @else { <span class="text-gray">Unassigned</span> }
+            </td>
+            <td (click)="$event.stopPropagation()">
+              <span class="pill" [ngClass]="ui.taskStatusClass(t.Status)">
+                <select class="inline-select" [ngModel]="t.Status" (ngModelChange)="onStatusChange(t, $event)" (click)="$event.stopPropagation()" aria-label="Change status">
+                  @for (s of ui.taskStatuses; track s) { <option [value]="s">{{ s }}</option> }
+                </select>
+              </span>
+            </td>
+            <td><span class="fw-600" [ngClass]="ui.priorityClass(t.Priority)">{{ t.Priority }}</span></td>
+            <td class="due-cell" [ngClass]="ui.dueClass(t)" [title]="t.DueDate ? (t.DueDate | date:'dd MMM yyyy') : ''">
+              @if (t.Status !== 'Done' && t.DueDate) { {{ ui.dueLabel(t) }} }
+              @else if (t.DueDate) { {{ t.DueDate | date:'dd MMM' }} }
+              @else { <span class="text-gray">—</span> }
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <button class="icon-btn" title="Edit" (click)="onEdit(t, $event)"><span class="icomoon icon-edit"></span></button>
+                <button class="icon-btn danger" title="Delete" (click)="onDelete(t, $event)"><span class="icomoon icon-delete"></span></button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+      <tbody>
+        @if (taskData.length == 0) {
+          <tr class="content">
+            <td colspan="6" class="text-center text-black">
+              <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+              <h6>No tasks found.</h6>
+              @if (hasFilters) {
+                <button type="button" class="btn btn-outline btn-sm mt-2" (click)="clearFilters()">Clear filters</button>
+              } @else {
+                <button type="button" class="btn btn-primary btn-sm mt-2" routerLink="/tasks/create" [queryParams]="keepParams">+ Create Task</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pt-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+      <p class="totRecords mb-0">Records Found : {{ FilterRecords }}</p>
+      <select [(ngModel)]="cardsPerPage" (change)="onRecordsPerPageChange()" class="form-select form-select-sm" style="width: auto;" aria-label="Rows per page">
+        @for (option of recordsPerPageOptions; track option) { <option [value]="option">{{ option }} / page</option> }
+      </select>
+    </div>
+    <nav>
+      <ul class="pagination justify-content-center pagination-sm mb-0">
+        @if (currentPage > 1) { <li class="page-item" (click)="prevPage()"><a href="javascript:void(0)" class="page-link">Prev</a></li> }
+        @for (page of pageNumbers; track page) {
+          <li class="page-item" (click)="goToPage(page)" [class.active]="page === currentPage">
+            <a href="javascript:void(0)" class="page-link" [ngClass]="currentPage == page ? 'text-white' : ''">{{ page }}</a>
+          </li>
+        }
+        @if (currentPage < totalPages) { <li class="page-item" (click)="nextPage()"><a href="javascript:void(0)" class="page-link">Next</a></li> }
+      </ul>
+    </nav>
+  </div>
+
+  @if (drawerTaskId) {
+    <app-task-drawer [taskId]="drawerTaskId" (closed)="closeTask()" (changed)="onTaskChanged($event)"></app-task-drawer>
+  }
+</div>

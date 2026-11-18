@@ -1,0 +1,6 @@
+/* Module not in the plan (spec 005 §8.2): greyed, read-only row. */
+tr.not-in-plan td {background: #F6F7FA;}
+tr.not-in-plan .form-check-input:disabled {cursor: not-allowed;}
+
+/* Small explanation under a matrix row name (Settings: Manage = users & roles). */
+.row-note {font-size: 12px;}

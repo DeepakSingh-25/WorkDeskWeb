@@ -1,0 +1,148 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="workflow">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/workflows">Workflow &amp; Approval</a> / Workflows</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Workflows</h2>
+      <p class="text-gray mb-0 fs-13">The steps a task or request goes through from start to finish.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <div class="view-toggle">
+        <button type="button" [class.active]="view === 'table'" (click)="view = 'table'" title="List"><fa-icon [icon]="faTable" /></button>
+        <button type="button" [class.active]="view === 'cards'" (click)="view = 'cards'" title="Cards"><fa-icon [icon]="faCards" /></button>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="newWorkflow()">+ New workflow</button>
+    </div>
+  </div>
+
+  <app-workflow-nav></app-workflow-nav>
+
+  <div class="filter-bar d-flex flex-wrap gap-2 align-items-center mb-3">
+    <div class="search position-relative icomoon icon-search">
+      <input type="text" placeholder="Search workflows" [value]="searchValue" (input)="getSearchValue($event)" autocomplete="off" aria-label="Search workflows">
+    </div>
+    <select class="form-select form-select-sm" style="width:auto" [(ngModel)]="appliesTo" (ngModelChange)="onFilterChange()" aria-label="Used for">
+      <option value="">Used for: anything</option>
+      @for (e of ui.entities; track e) { <option [value]="e">{{ e }}</option> }
+    </select>
+    <select class="form-select form-select-sm" style="width:auto" [(ngModel)]="projectID" (ngModelChange)="onFilterChange()" aria-label="Project">
+      <option [ngValue]="null">All projects</option>
+      @for (p of ui.projects; track p.ID) { <option [ngValue]="p.ID">{{ p.Name }}</option> }
+    </select>
+    @if (hasFilters) { <button type="button" class="btn btn-sm btn-link text-decoration-none" (click)="clearFilters()">Clear</button> }
+  </div>
+
+  <div class="status-tabs mb-3">
+    @for (s of statusTabs; track s) {
+      <button type="button" [class.active]="statusTab === s" (click)="setStatusTab(s)">
+        {{ s || 'All' }}<span class="count">{{ count(s) }}</span>
+      </button>
+    }
+  </div>
+
+  <ng-template #rowMenu let-w>
+    <div class="dropdown">
+      <button type="button" class="icon-btn" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="More actions">⋯</button>
+      <ul class="dropdown-menu dropdown-menu-end fs-13">
+        <li><button type="button" class="dropdown-item" (click)="duplicate(w)">Duplicate</button></li>
+        @if (w.Status !== 'Archived') {
+          <li><button type="button" class="dropdown-item" (click)="toggleActive(w)">{{ w.Status === 'Active' ? 'Turn off' : 'Turn on' }}</button></li>
+        }
+        <li><button type="button" class="dropdown-item" (click)="archive(w)">{{ w.Status === 'Archived' ? 'Restore' : 'Archive' }}</button></li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <button type="button" class="dropdown-item text-danger" [class.opacity-50]="w.ProjectIDs.length > 0" (click)="onDelete(w)">
+            Delete @if (w.ProjectIDs.length) { <small class="text-gray">(in use)</small> }
+          </button>
+        </li>
+      </ul>
+    </div>
+  </ng-template>
+
+  @if (view === 'table') {
+    <div class="p-0 table-certificate shadow table-responsive">
+      <table class="table rounded table-striped align-middle">
+        <thead>
+          <tr class="lightblue">
+            <th>Name <a class="ms-1 cursor-pointer" (click)="orderBy('Name')"><img [src]="sortIcon('Name')" alt="arrow"></a></th>
+            <th>Used for <a class="ms-1 cursor-pointer" (click)="orderBy('AppliesTo')"><img [src]="sortIcon('AppliesTo')" alt="arrow"></a></th>
+            <th>Status <a class="ms-1 cursor-pointer" (click)="orderBy('Status')"><img [src]="sortIcon('Status')" alt="arrow"></a></th>
+            <th>Last updated <a class="ms-1 cursor-pointer" (click)="orderBy('UpdatedOn')"><img [src]="sortIcon('UpdatedOn')" alt="arrow"></a></th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (w of pageRows; track w.ID) {
+            <tr class="content row-click" (click)="rowClick(w, $event)">
+              <td style="min-width: 220px; white-space: normal;"><span class="link-name fw-600">{{ w.Name }}</span></td>
+              <td>
+                {{ w.AppliesTo }}
+                <small class="text-gray">· {{ w.ProjectIDs.length ? w.ProjectIDs.length + (w.ProjectIDs.length === 1 ? ' project' : ' projects') : 'not used yet' }}</small>
+              </td>
+              <td><span class="pill" [ngClass]="ui.wfStateClass(w.Status)">{{ w.Status }}</span></td>
+              <td class="fs-13">{{ ui.ago(w.UpdatedOn) }} <span class="text-gray">by {{ ui.userName(w.UpdatedByID) }}</span></td>
+              <td>
+                <div class="d-flex gap-1">
+                  <button type="button" class="btn btn-outline btn-sm" (click)="openDesigner(w, $event)">Open</button>
+                  <ng-container *ngTemplateOutlet="rowMenu; context: { $implicit: w }" />
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+        <tbody>
+          @if (pageRows.length == 0) {
+            <tr class="content">
+              <td colspan="5" class="text-center text-black">
+                <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+                <h6>No Record Found</h6>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="row g-3">
+      @for (w of pageRows; track w.ID) {
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="wf-card h-100" (click)="rowClick(w, $event)">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <h6 class="mb-1 fw-600 text-black">{{ w.Name }}</h6>
+              <span class="pill" [ngClass]="ui.wfStateClass(w.Status)">{{ w.Status }}</span>
+            </div>
+            <p class="text-gray fs-13 mb-2">Used for {{ w.AppliesTo | lowercase }} · updated {{ ui.ago(w.UpdatedOn) | lowercase }}</p>
+            <div class="d-flex gap-1 pt-2 border-top">
+              <button type="button" class="btn btn-outline btn-sm" (click)="openDesigner(w, $event)">Open</button>
+              <ng-container *ngTemplateOutlet="rowMenu; context: { $implicit: w }" />
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="col-12 text-center py-4">
+          <p class="mb-2">No workflows match your search.</p>
+          <button type="button" class="btn btn-primary btn-sm" (click)="newWorkflow()">+ New workflow</button>
+        </div>
+      }
+    </div>
+  }
+
+  <div class="pt-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+      <p class="totRecords mb-0">Records Found : {{ rows.length }}</p>
+      <select [(ngModel)]="cardsPerPage" (change)="currentPage = 1" class="form-select form-select-sm" style="width: auto;" aria-label="Rows per page">
+        @for (option of recordsPerPageOptions; track option) { <option [value]="option">{{ option }} / page</option> }
+      </select>
+    </div>
+    <nav>
+      <ul class="pagination justify-content-center pagination-sm mb-0">
+        @if (currentPage > 1) { <li class="page-item" (click)="prevPage()"><a href="javascript:void(0)" class="page-link">Prev</a></li> }
+        @for (page of pageNumbers; track page) {
+          <li class="page-item" (click)="goToPage(page)" [class.active]="page === currentPage">
+            <a href="javascript:void(0)" class="page-link" [ngClass]="currentPage == page ? 'text-white' : ''">{{ page }}</a>
+          </li>
+        }
+        @if (currentPage < totalPages) { <li class="page-item" (click)="nextPage()"><a href="javascript:void(0)" class="page-link">Next</a></li> }
+      </ul>
+    </nav>
+  </div>
+</div>

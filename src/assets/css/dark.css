@@ -1,0 +1,182 @@
+/* ===================== Theme toggle button (header) ===================== */
+.theme-toggle{width: 44px; height: 44px; border-radius: 50%; border: 0; display: inline-grid; place-items: center; background: rgba(0, 67, 224, .07); color: #0043E0; cursor: pointer; transition: background .2s, color .2s, transform .3s;}
+.theme-toggle:hover{background: rgba(0, 67, 224, .14);}
+.theme-toggle:active{transform: rotate(-25deg) scale(.94);}
+.theme-toggle:focus-visible{outline: 2px solid #0043E0; outline-offset: 2px;}
+html[data-theme="dark"] .theme-toggle{background: rgba(255, 201, 77, .12); color: #FFC94D;}
+html[data-theme="dark"] .theme-toggle:hover{background: rgba(255, 201, 77, .2);}
+html[data-theme="dark"] .theme-toggle:focus-visible{outline-color: #FFC94D;}
+
+/* ===================== Night mode =====================
+   dark-auto.css (generated) converts the colours hard-coded in our CSS.
+   This file fixes what the generator can't see: Bootstrap utilities, inline
+   styles, third-party widgets and the page shell. */
+html[data-theme="dark"]{
+    --dk-page: #0E1320;
+    --dk-surface: #171D2B;
+    --dk-surface-2: #1E2636;
+    --dk-border: #2A3448;
+    --dk-text: #E2E8F5;
+    --dk-muted: #98A3BA;
+    --dk-primary: #5C8CFF;
+    --text-color: var(--dk-text);
+    --body-bg-color: var(--dk-surface);
+    --bs-body-bg: var(--dk-page);
+    --bs-body-color: var(--dk-text);
+    --bs-border-color: var(--dk-border);
+    --bs-secondary-bg: var(--dk-surface-2);
+    --bs-tertiary-bg: var(--dk-surface-2);
+    color-scheme: dark;
+}
+html[data-theme="dark"] body{background: var(--dk-page) none !important; color: var(--dk-text);}
+
+/* shell */
+html[data-theme="dark"] header,
+html[data-theme="dark"] .navbar,
+html[data-theme="dark"] #sidebar{background-color: var(--dk-surface) !important;}
+html[data-theme="dark"] header.shadow{box-shadow: 0 1px 0 var(--dk-border) !important;}
+html[data-theme="dark"] .navbar .menu-list .menu-item{border-top-color: rgba(255, 255, 255, .06);}
+html[data-theme="dark"] .navbar:not(.hoverActive) .menu-list .menu-item .menu-link .menu-link-text{color: var(--dk-muted);}
+html[data-theme="dark"] .sidebar li.menu-item .dropdown-menu{background-color: transparent;}
+html[data-theme="dark"] .sidebar li.menu-item .dropdown-menu li .dropdown-item,
+html[data-theme="dark"] .submenu-item{background: rgba(92, 140, 255, .12); color: var(--dk-primary) !important;}
+html[data-theme="dark"] .icomoon::before{color: inherit;}
+html[data-theme="dark"] .dashboard-body{scrollbar-color: #2E3A52 transparent;}
+
+/* bootstrap utilities */
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-light,
+html[data-theme="dark"] .bg-body{background-color: var(--dk-surface) !important;}
+html[data-theme="dark"] .text-dark,
+html[data-theme="dark"] .text-black,
+html[data-theme="dark"] .text-body{color: var(--dk-text) !important;}
+html[data-theme="dark"] .text-muted,
+html[data-theme="dark"] .text-secondary,
+html[data-theme="dark"] .text-gray,
+html[data-theme="dark"] .text-black-50{color: var(--dk-muted) !important;}
+html[data-theme="dark"] .text-primary{color: var(--dk-primary) !important;}
+html[data-theme="dark"] .border,
+html[data-theme="dark"] .border-top,
+html[data-theme="dark"] .border-bottom,
+html[data-theme="dark"] .border-start,
+html[data-theme="dark"] .border-end,
+html[data-theme="dark"] .border-left{border-color: var(--dk-border) !important;}
+html[data-theme="dark"] .shadow,
+html[data-theme="dark"] .shadow-sm,
+html[data-theme="dark"] .shadow-lg{box-shadow: 0 4px 18px rgba(0, 0, 0, .45) !important;}
+html[data-theme="dark"] h1, html[data-theme="dark"] h2, html[data-theme="dark"] h3,
+html[data-theme="dark"] h4, html[data-theme="dark"] h5, html[data-theme="dark"] h6{color: var(--dk-text);}
+
+/* cards, menus, overlays */
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .offcanvas,
+html[data-theme="dark"] .dropdown-menu,
+html[data-theme="dark"] .popover,
+html[data-theme="dark"] .accordion-item,
+html[data-theme="dark"] .accordion-button,
+html[data-theme="dark"] .list-group-item{background-color: var(--dk-surface); color: var(--dk-text); border-color: var(--dk-border);}
+html[data-theme="dark"] .modal-header,
+html[data-theme="dark"] .modal-footer,
+html[data-theme="dark"] .card-header,
+html[data-theme="dark"] .card-footer{border-color: var(--dk-border);}
+html[data-theme="dark"] .dropdown-menu p a,
+html[data-theme="dark"] .dropdown-item{color: var(--dk-text) !important;}
+html[data-theme="dark"] .dropdown-menu p a:hover,
+html[data-theme="dark"] .dropdown-item:hover{background: rgba(255, 255, 255, .06) !important; color: var(--dk-primary) !important;}
+html[data-theme="dark"] .btn-close{filter: invert(1) grayscale(1) brightness(1.6);}
+
+/* tables */
+html[data-theme="dark"] .table{--bs-table-bg: var(--dk-surface); --bs-table-color: var(--dk-text); --bs-table-striped-bg: var(--dk-surface-2); --bs-table-hover-bg: #232C3F; --bs-table-border-color: var(--dk-border); color: var(--dk-text);}
+html[data-theme="dark"] .table > :not(caption) > * > *{border-bottom-color: var(--dk-border);}
+html[data-theme="dark"] thead th{background-color: var(--dk-surface-2) !important; color: var(--dk-text) !important;}
+
+/* forms */
+html[data-theme="dark"] .form-control,
+html[data-theme="dark"] .form-select,
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select{background-color: #121827 !important; color: var(--dk-text) !important; border-color: var(--dk-border) !important;}
+html[data-theme="dark"] .form-control:focus,
+html[data-theme="dark"] .form-select:focus,
+html[data-theme="dark"] textarea:focus{border-color: var(--dk-primary) !important; box-shadow: 0 0 0 .2rem rgba(92, 140, 255, .2) !important;}
+html[data-theme="dark"] ::placeholder{color: #6B768C !important; opacity: 1;}
+html[data-theme="dark"] .form-control:disabled,
+html[data-theme="dark"] .form-control[readonly]{background-color: #1A2131 !important; color: var(--dk-muted) !important;}
+html[data-theme="dark"] .input-group-text{background: var(--dk-surface-2); color: var(--dk-muted); border-color: var(--dk-border);}
+html[data-theme="dark"] .form-check-input{background-color: #121827; border-color: #3A4660;}
+html[data-theme="dark"] .form-check-input:checked{background-color: var(--dk-primary); border-color: var(--dk-primary);}
+html[data-theme="dark"] label{color: var(--dk-text);}
+
+/* buttons */
+html[data-theme="dark"] .btn-light,
+html[data-theme="dark"] .btn-outline-secondary,
+html[data-theme="dark"] .btn-white{background: var(--dk-surface-2); color: var(--dk-text); border-color: var(--dk-border);}
+html[data-theme="dark"] .btn-outline-primary{color: var(--dk-primary); border-color: var(--dk-primary);}
+html[data-theme="dark"] .btn-outline-primary:hover{background: var(--dk-primary); color: #fff;}
+
+/* ng-select */
+html[data-theme="dark"] .ng-select .ng-select-container{background-color: #121827; color: var(--dk-text); border-color: var(--dk-border);}
+html[data-theme="dark"] .ng-select .ng-select-container .ng-value-container .ng-input > input{color: var(--dk-text) !important; background: transparent !important;}
+html[data-theme="dark"] .ng-dropdown-panel{background-color: var(--dk-surface); border-color: var(--dk-border);}
+html[data-theme="dark"] .ng-dropdown-panel .ng-dropdown-panel-items .ng-option{background-color: var(--dk-surface); color: var(--dk-text);}
+html[data-theme="dark"] .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked{background-color: #232C3F; color: var(--dk-text);}
+html[data-theme="dark"] .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-selected{background-color: rgba(92, 140, 255, .18); color: var(--dk-text);}
+html[data-theme="dark"] .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value{background-color: rgba(92, 140, 255, .18); color: var(--dk-text); border-color: transparent;}
+
+/* inline styles in templates (style="background:#fff" etc.) */
+html[data-theme="dark"] [style*="background: #fff"],
+html[data-theme="dark"] [style*="background:#fff"],
+html[data-theme="dark"] [style*="background-color: #fff"],
+html[data-theme="dark"] [style*="background-color:#fff"],
+html[data-theme="dark"] [style*="background: white"],
+html[data-theme="dark"] [style*="background-color: white"],
+html[data-theme="dark"] [style*="background: #FFF"],
+html[data-theme="dark"] [style*="background-color: #FFF"]{background-color: var(--dk-surface) !important;}
+html[data-theme="dark"] [style*="background: #F4F7FF" i],
+html[data-theme="dark"] [style*="background-color: #F4F7FF" i],
+html[data-theme="dark"] [style*="background: #F6FAFF" i],
+html[data-theme="dark"] [style*="background: #EEF2FC" i],
+html[data-theme="dark"] [style*="background: #EAF0FF" i]{background-color: var(--dk-surface-2) !important;}
+html[data-theme="dark"] [style*="color: #1C1D1D" i],
+html[data-theme="dark"] [style*="color:#1C1D1D" i],
+html[data-theme="dark"] [style*="color: #000" i],
+html[data-theme="dark"] [style*="color: black" i],
+html[data-theme="dark"] [style*="color: #212529" i],
+html[data-theme="dark"] [style*="color: #333" i]{color: var(--dk-text) !important;}
+html[data-theme="dark"] [style*="color: #686868" i],
+html[data-theme="dark"] [style*="color: #6F6F6F" i],
+html[data-theme="dark"] [style*="color: #7B7B7B" i]{color: var(--dk-muted) !important;}
+
+/* misc */
+html[data-theme="dark"] hr{border-color: var(--dk-border); opacity: 1;}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb{background: #2E3A52;}
+html[data-theme="dark"] ::-webkit-scrollbar-track{background: transparent;}
+
+/* light background images: dashboard stat boxes, banners, login/signup */
+html[data-theme="dark"] .box-1, html[data-theme="dark"] .box-11{background-image: linear-gradient(135deg, rgba(92, 140, 255, .22), rgba(92, 140, 255, .05)); background-color: var(--dk-surface);}
+html[data-theme="dark"] .box-2, html[data-theme="dark"] .box-12{background-image: linear-gradient(135deg, rgba(255, 99, 112, .2), rgba(255, 99, 112, .04)); background-color: var(--dk-surface);}
+html[data-theme="dark"] .box-3, html[data-theme="dark"] .box-13{background-image: linear-gradient(135deg, rgba(64, 196, 120, .2), rgba(64, 196, 120, .04)); background-color: var(--dk-surface);}
+html[data-theme="dark"] .box-4, html[data-theme="dark"] .box-14{background-image: linear-gradient(135deg, rgba(255, 176, 64, .2), rgba(255, 176, 64, .04)); background-color: var(--dk-surface);}
+html[data-theme="dark"] .dashboard-box h5, html[data-theme="dark"] .dashboard-box p{color: var(--dk-text);}
+html[data-theme="dark"] .announcement,
+html[data-theme="dark"] .bg-sec1,
+html[data-theme="dark"] .bg{box-shadow: inset 0 0 0 100vmax rgba(14, 19, 32, .82);}
+
+/* header: notification bell + offcanvas panel */
+html[data-theme="dark"] img.notification{content: url(../images/notification-dark.svg);}
+html[data-theme="dark"] header .offcanvas{background-color: var(--dk-surface); color: var(--dk-text); border-left: 1px solid var(--dk-border);}
+html[data-theme="dark"] header .offcanvas-header{background-color: var(--dk-surface-2) !important; border-bottom: 1px solid var(--dk-border);}
+html[data-theme="dark"] header .offcanvas-title,
+html[data-theme="dark"] header .offcanvas-body h3{color: var(--dk-text);}
+
+/* header profile dropdown: header.component.css sets #1C1D1D !important with
+   component-scoped selectors, so these need the extra classes to win */
+html[data-theme="dark"] header .dropdown-menu .user p a.dropdown-item{color: var(--dk-text) !important; background: transparent !important;}
+html[data-theme="dark"] header .dropdown-menu .user p a.dropdown-item .custom-icon{color: var(--dk-muted) !important;}
+html[data-theme="dark"] header .dropdown-menu .user p a.dropdown-item:hover{background: rgba(92, 140, 255, .1) !important; color: var(--dk-primary) !important;}
+html[data-theme="dark"] header .dropdown-menu .user p a.dropdown-item:hover .custom-icon{color: var(--dk-primary) !important;}
+html[data-theme="dark"] header .dropdown-menu .users:hover{background: rgba(255, 255, 255, .04);}
+
+/* Day chips (working days): dark-auto.css ka .day-chip background .active ko override karta tha => selected din dikhte hi nahi the */
+html[data-theme="dark"] :is(#project, #task, .pm-page) .day-chip.active{background: var(--dk-primary); border-color: var(--dk-primary); color: #fff;}

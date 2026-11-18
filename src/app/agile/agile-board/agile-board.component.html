@@ -1,0 +1,125 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="agile">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/agile/backlog" [queryParams]="{ project: projectID }">Agile</a> / Active Sprint</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Active Sprint Board</h2>
+      <p class="text-gray mb-0 fs-13">{{ projectName }} · drag a card to another column to change its status.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      @if (sprint) {
+        <button type="button" class="btn btn-primary" (click)="showComplete = true"><fa-icon [icon]="faFinish" class="me-2" /> Complete Sprint</button>
+      }
+    </div>
+  </div>
+
+  <app-agile-nav [projectID]="projectID"></app-agile-nav>
+
+  @if (!sprint) {
+    <div class="card-box">
+      <div class="card-body text-center py-5">
+        <img src="../../assets/images/no_record_found.webp" alt="" width="200">
+        <h6 class="mt-2">No active sprint</h6>
+        <p class="text-gray fs-13">Plan a sprint and start it to see the board.</p>
+        <a class="btn btn-primary" routerLink="/agile/planning" [queryParams]="{ project: projectID }">Go to Sprint Planning</a>
+      </div>
+    </div>
+  } @else {
+    <!-- sprint header -->
+    <div class="sprint-header card-box mb-3">
+      <div class="card-body">
+        <div class="row row-gap-3 align-items-center">
+          <div class="col-lg-6">
+            <h5 class="fw-bold mb-0">{{ sprint.Name }}</h5>
+            <div class="text-gray fs-13 mt-1">{{ sprint.Goal || 'No sprint goal set' }}</div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="fw-600" [class.text-danger]="daysLeft <= 2">{{ daysLeft }} {{ daysLeft === 1 ? 'day' : 'days' }} left</div>
+            <small class="text-gray">Ends {{ sprint.EndDate | date:'dd MMM' }}</small>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="fw-600">{{ donePoints }} of {{ totalPoints }} story points done</div>
+            <div class="progress-thin mt-1"><div class="bar green" [style.width.%]="progress"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- toolbar -->
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+      <span class="text-gray fs-13">Group by</span>
+      <div class="view-toggle">
+        <button type="button" [class.active]="swimlane === 'none'" (click)="setSwimlane('none')">Nothing</button>
+        <button type="button" [class.active]="swimlane === 'assignee'" (click)="setSwimlane('assignee')">Person</button>
+        <button type="button" [class.active]="swimlane === 'epic'" (click)="setSwimlane('epic')">Epic</button>
+      </div>
+      <button type="button" class="btn btn-sm py-1" [ngClass]="onlyMine ? 'btn-primary' : 'btn-outline'" (click)="toggleMine()">Only my work</button>
+    </div>
+
+    <!-- column headers (shared for swimlanes) -->
+    <div class="board-scroll">
+      <div class="board board-head-row mb-0 pb-0">
+        @for (st of statuses; track st) {
+          <div class="board-col head-only">
+            <div class="board-col-head">
+              <h6>{{ st }} <span class="text-gray fw-normal">({{ colCount(st) }})</span></h6>
+              <small class="text-gray">{{ colPoints(st) }} story points</small>
+            </div>
+          </div>
+        }
+      </div>
+
+      @for (lane of lanes; track lane.key) {
+        @if (lane.label) {
+          <div class="lane-head" (click)="collapsedLanes[lane.key] = !collapsedLanes[lane.key]">
+            <span class="text-gray">{{ collapsedLanes[lane.key] ? '▸' : '▾' }}</span>
+            @if (swimlane === 'assignee') {
+              <span class="avatar sm" [ngClass]="ui.avatarClass(lane.label)">{{ ui.initials(lane.label) }}</span>
+            } @else {
+              <span class="epic-dot" [style.background]="lane.color"></span>
+            }
+            <b>{{ lane.label }}</b>
+            <small class="text-gray">{{ lane.issues.length }} {{ lane.issues.length === 1 ? 'item' : 'items' }}</small>
+          </div>
+        }
+        @if (!collapsedLanes[lane.key]) {
+          <div class="board lane-board">
+            @for (st of statuses; track st) {
+              <div class="board-col" [class.drag-over]="dragOverCell === lane.key + st"
+                (dragover)="onDragOver($event, lane.key + st)" (dragleave)="onDragLeave($event, lane.key + st)" (drop)="onDrop($event, st)">
+                <div class="board-col-body">
+                  @for (i of cell(lane, st); track i.ID) {
+                    <div class="board-card" draggable="true" [class.dragging]="draggedId === i.ID" [class.is-done]="i.Status === 'Done'"
+                      (dragstart)="onDragStart($event, i)" (dragend)="onDragEnd()" (click)="drawerIssueId = i.ID">
+                      <div class="title">{{ ui.stripKey(i.Title) }}</div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-gray">{{ i.StoryPoints == null ? 'Not estimated' : i.StoryPoints + (i.StoryPoints === 1 ? ' story point' : ' story points') }}</small>
+                        @if (i.AssigneeName) {
+                          <span class="avatar sm" [ngClass]="ui.avatarClass(i.AssigneeName)" [title]="i.AssigneeName">{{ ui.initials(i.AssigneeName) }}</span>
+                        } @else {
+                          <span class="avatar sm unassigned" title="Nobody assigned">?</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (cell(lane, st).length === 0) {
+                    <div class="text-center text-gray fs-13 py-3">Nothing here</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (drawerIssueId) {
+    <app-agile-issue-drawer [issueId]="drawerIssueId" [team]="team" [epics]="epics" [sprintName]="sprint?.Name || ''"
+      (closed)="drawerIssueId = null" (changed)="onIssueChanged($event)"></app-agile-issue-drawer>
+  }
+
+  @if (showComplete && sprint) {
+    <app-agile-complete-sprint [sprint]="sprint" [issues]="issues" [plannedSprints]="plannedSprints"
+      (completed)="onCompleted()" (cancelled)="showComplete = false"></app-agile-complete-sprint>
+  }
+</div>

@@ -1,0 +1,261 @@
+<div class="breadcrumb-lite mb-1"><a routerLink="/settings">Settings</a> / Organization</div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h2 class="fw-bold mb-0">Organization</h2>
+    <p class="text-gray mb-0 fs-13">Your company details, time zone and working hours.</p>
+  </div>
+  @if (canEdit && orgForm.dirty) { <span class="dirty-badge"><span class="dot"></span> Unsaved changes</span> }
+</div>
+
+@if (!loaded && loadError) {
+  <div class="warn-note mb-3">
+    <div>{{ loadError }} <a href="javascript:void(0)" (click)="load()">Try again</a></div>
+  </div>
+}
+
+@if (loaded) {
+  <form [formGroup]="orgForm" (ngSubmit)="onSave()" class="d-flex flex-column gap-3">
+    @if (!canEdit) {
+      <div class="info-note">
+        <fa-icon [icon]="faCircleInfo" />
+        <div>Only admins can change these settings.</div>
+      </div>
+    }
+
+    <!-- Profile -->
+    <div class="card-box">
+      <div class="card-head"><h5>Company</h5></div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-lg-3 mb-3">
+            <label class="form-label">Logo</label>
+            <div class="logo-upload">
+              <div class="logo-box">
+                @if (hasLogo && logoUrl) { <img [src]="logoUrl" alt="Organization logo"> }
+                @else { <span class="logo-initials" [style.background]="v.PrimaryColor">{{ ui.initials(v.txtName) }}</span> }
+              </div>
+              @if (canEdit) {
+                <div class="d-flex gap-2 flex-wrap justify-content-center">
+                  <button type="button" class="btn btn-outline btn-sm" [disabled]="logoBusy" (click)="logoInput.click()">Upload</button>
+                  <input #logoInput type="file" id="orgLogo" class="d-none" accept="image/png,image/jpeg,image/webp" tabindex="-1" aria-hidden="true" (change)="onLogoSelected($event)">
+                  @if (hasLogo) { <button type="button" class="btn btn-red btn-sm" [disabled]="logoBusy" (click)="removeLogo()">Remove</button> }
+                </div>
+                <small class="text-gray d-block text-center">Square PNG, JPG or WEBP, up to 1 MB. Saved right away.</small>
+              }
+              @if (logoError) { <div class="text-danger fs-13 text-center">{{ logoError }}</div> }
+            </div>
+          </div>
+          <div class="col-lg-9">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="orgName" class="form-label required">Company name</label>
+                <input type="text" id="orgName" class="form-control" formControlName="txtName" maxlength="100">
+                @if (fieldError('txtName'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="orgCountry" class="form-label required">Country</label>
+                <select id="orgCountry" class="form-select" formControlName="drpCountry">
+                  <option [ngValue]="null" disabled>Select country</option>
+                  @for (c of countries; track c.ID) { <option [ngValue]="c.ID">{{ c.CountryName }}</option> }
+                </select>
+                @if (fieldError('drpCountry'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+              </div>
+              <div class="col-12 mb-2">
+                <button type="button" class="more-toggle" (click)="showMoreProfile = !showMoreProfile" [attr.aria-expanded]="showMoreProfile">
+                  <span class="chev" [class.open]="showMoreProfile">›</span> More options
+                </button>
+              </div>
+              @if (showMoreProfile) {
+                <div class="col-md-6 mb-3">
+                  <label for="orgWebsite" class="form-label">Website</label>
+                  <input type="url" id="orgWebsite" class="form-control" formControlName="txtWebsite" placeholder="https://" maxlength="200">
+                  @if (fieldError('txtWebsite'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                  <label for="orgIndustry" class="form-label">Industry</label>
+                  <select id="orgIndustry" class="form-select" formControlName="drpIndustry">
+                    <option value="">Not set</option>
+                    @for (i of industries; track i) { <option [value]="i">{{ i }}</option> }
+                  </select>
+                  @if (fieldError('drpIndustry'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                  <label for="orgSize" class="form-label">Company size</label>
+                  <select id="orgSize" class="form-select" formControlName="drpSize">
+                    <option value="">Not set</option>
+                    @for (s of sizes; track s) { <option [value]="s">{{ s }} employees</option> }
+                  </select>
+                  @if (fieldError('drpSize'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+                </div>
+                <div class="col-12 mb-3">
+                  <label for="orgAddress" class="form-label">Address</label>
+                  <input type="text" id="orgAddress" class="form-control" formControlName="txtAddress" maxlength="200">
+                  @if (fieldError('txtAddress'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+                </div>
+                <div class="col-md-4 col-6 mb-3">
+                  <label for="orgCity" class="form-label">City</label>
+                  <input type="text" id="orgCity" class="form-control" formControlName="txtCity" maxlength="100">
+                  @if (fieldError('txtCity'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+                </div>
+                <div class="col-md-4 col-6 mb-3">
+                  <label for="orgState" class="form-label">State</label>
+                  <input type="text" id="orgState" class="form-control" formControlName="txtState" maxlength="100">
+                  @if (fieldError('txtState'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+                </div>
+                <div class="col-md-4 col-6 mb-3">
+                  <label for="orgPin" class="form-label">Postal code</label>
+                  <input type="text" id="orgPin" class="form-control" formControlName="txtPostalCode">
+                  @if (fieldError('txtPostalCode'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time & working hours -->
+    <div class="card-box">
+      <div class="card-head"><h5>Time and working hours</h5></div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="orgTz" class="form-label required">Time zone</label>
+            <ng-select formControlName="drpTimezone" labelForId="orgTz" [items]="timezones" [clearable]="false"></ng-select>
+            @if (fieldError('drpTimezone'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="orgDate" class="form-label">Date format</label>
+            <select id="orgDate" class="form-select" formControlName="drpDateFormat">
+              @for (f of dateFormats; track f) { <option [value]="f">{{ f }}</option> }
+            </select>
+            <small class="text-gray">Today looks like: {{ datePreview }}</small>
+            @if (fieldError('drpDateFormat'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+          </div>
+          <div class="col-12 mb-3">
+            <label class="form-label required">Working days</label>
+            <div class="d-flex gap-2 flex-wrap">
+              @for (d of ui.weekDays; track d) {
+                <span class="day-chip" role="button" [attr.tabindex]="canEdit ? 0 : -1" [attr.aria-disabled]="!canEdit" [attr.aria-pressed]="v.WorkingDays?.includes(d)" [class.active]="v.WorkingDays?.includes(d)" (click)="toggleDay(d)" (keydown.enter)="toggleDay(d)" (keydown.space)="$event.preventDefault(); toggleDay(d)">{{ d }}</span>
+              }
+            </div>
+            @if (!v.WorkingDays?.length) { <div class="text-danger fs-13">Select at least one working day</div> }
+            @else if (fieldError('WorkingDays'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+          </div>
+          <div class="col-md-4 col-6 mb-3">
+            <label for="orgStart" class="form-label required">Work starts at</label>
+            <input type="time" id="orgStart" class="form-control" formControlName="txtWorkStart">
+            @if (fieldError('txtWorkStart'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+          </div>
+          <div class="col-md-4 col-6 mb-3">
+            <label for="orgEnd" class="form-label required">Work ends at</label>
+            <input type="time" id="orgEnd" class="form-control" formControlName="txtWorkEnd">
+            @if (!hoursInvalid) {
+              @if (fieldError('txtWorkEnd'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+            }
+          </div>
+          <div class="col-md-4 d-flex align-items-end mb-3">
+            <span class="text-gray fs-13">{{ hoursInvalid ? '' : workingHours + ' a day' }}</span>
+          </div>
+          @if (hoursInvalid) { <div class="col-12 text-danger fs-13 mb-2">Work must end after it starts</div> }
+          <div class="col-12">
+            <button type="button" class="more-toggle" (click)="showMoreRegional = !showMoreRegional" [attr.aria-expanded]="showMoreRegional">
+              <span class="chev" [class.open]="showMoreRegional">›</span> More options
+            </button>
+          </div>
+          @if (showMoreRegional) {
+            <div class="col-md-4 mt-3">
+              <label for="orgCur" class="form-label">Currency</label>
+              <select id="orgCur" class="form-select" formControlName="drpCurrency">
+                @for (c of currencies; track c) { <option [value]="c">{{ c }}</option> }
+              </select>
+              @if (fieldError('drpCurrency'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+            </div>
+            <div class="col-md-4 mt-3">
+              <label for="orgWeek" class="form-label">Week starts on</label>
+              <select id="orgWeek" class="form-select" formControlName="drpWeekStart">
+                <option value="Monday">Monday</option>
+                <option value="Sunday">Sunday</option>
+                <option value="Saturday">Saturday</option>
+              </select>
+              @if (fieldError('drpWeekStart'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+            </div>
+            <div class="col-md-4 mt-3">
+              <label for="orgFy" class="form-label">Financial year starts in</label>
+              <select id="orgFy" class="form-select" formControlName="drpFiscalStart">
+                @for (m of months; track m) { <option [value]="m">{{ m }}</option> }
+              </select>
+              @if (fieldError('drpFiscalStart'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced: project defaults + branding -->
+    <div class="card-box">
+      <button type="button" class="adv-toggle" (click)="showAdvanced = !showAdvanced" [attr.aria-expanded]="showAdvanced">
+        <span><b>Advanced</b><small>Who sees new projects, task numbers and your brand color.</small></span>
+        <span class="chev" [class.open]="showAdvanced">›</span>
+      </button>
+      @if (showAdvanced) {
+        <div class="card-body border-top">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="orgVis" class="form-label">Who can see new projects</label>
+              <select id="orgVis" class="form-select" formControlName="drpVisibility">
+                <option value="Private">Only project members</option>
+                <option value="Team">Members and their managers</option>
+                <option value="Organization">Everyone in the company</option>
+              </select>
+              @if (fieldError('drpVisibility'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="orgTaskId" class="form-label">Task number style</label>
+              <select id="orgTaskId" class="form-select" formControlName="drpTaskIdStyle">
+                @for (s of taskIdStyles; track s.Value) { <option [value]="s.Value">{{ s.Label }}</option> }
+              </select>
+              <small class="text-gray">Example: {{ taskIdExample }}</small>
+              @if (fieldError('drpTaskIdStyle'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+            </div>
+          </div>
+          <div class="row row-gap-3 align-items-center">
+            <div class="col-lg-6">
+              <label class="form-label">Brand color</label>
+              <div class="d-flex gap-2 flex-wrap align-items-center">
+                @for (c of swatches; track c) {
+                  <button type="button" class="swatch" [style.background]="c" [class.active]="v.PrimaryColor === c" [disabled]="!canEdit" (click)="setColor(c)" [attr.aria-label]="'Use color ' + c"></button>
+                }
+                <label class="swatch custom" title="Pick any color">
+                  <input type="color" [value]="v.PrimaryColor" [disabled]="!canEdit" (input)="setColor($any($event.target).value)" aria-label="Pick any color">
+                </label>
+              </div>
+              <small class="text-gray d-block mt-2">Used for buttons and links in emails and the client portal.</small>
+              @if (fieldError('PrimaryColor'); as msg) { <div class="text-danger fs-13">{{ msg }}</div> }
+            </div>
+            <div class="col-lg-6">
+              <div class="brand-preview">
+                <div class="brand-bar" [style.background]="v.PrimaryColor">
+                  @if (hasLogo && logoUrl) { <img [src]="logoUrl" alt=""> }
+                  @else { <span class="mini-logo">{{ ui.initials(v.txtName) }}</span> }
+                  <span class="fw-600 text-truncate">{{ v.txtName || 'Your organization' }}</span>
+                </div>
+                <div class="p-3 d-flex gap-2 flex-wrap align-items-center">
+                  <span class="preview-btn" [style.background]="v.PrimaryColor">Button</span>
+                  <a class="fw-600" [style.color]="v.PrimaryColor">A sample link</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (canEdit) {
+      <div class="sticky-actions d-flex gap-2 align-items-center flex-wrap">
+        <button type="submit" class="btn btn-primary" [disabled]="orgForm.pristine || saving"><span class="icomoon icon-save me-2"></span> Save Changes</button>
+        <button type="button" class="btn btn-danger" (click)="onDiscard()" [disabled]="orgForm.pristine || saving"><span class="icomoon icon-cancel me-2"></span> Discard</button>
+      </div>
+    }
+  </form>
+}

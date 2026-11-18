@@ -1,0 +1,29 @@
+@if (!showContent) {
+  <div class="blank-screen"></div>
+}
+<app-loader></app-loader>
+<app-notification></app-notification>
+@if (showContent && getPageUrl != '/login'&& getPageUrl != '/signup' && getPageUrl != '/forgot' && getPageUrl != '/accessdenied') {
+  <section class="desk">
+    <app-header-responsive></app-header-responsive>
+    <div class=" z-0">
+      <!-- Start aside bar -->
+      <nav id="sidebar" class="navbar position-fixed p-0 sidebar h-100 scroller active">
+        <app-sidebar></app-sidebar>
+      </nav>
+      <!-- End aside bar -->
+      <!-- Start top profile header -->
+      <div class="dashboard-body">
+        <app-header></app-header>
+        <!-- License strip (Grace / Expired / no license / seats / clock) — spec 005 §8.4; one instance for desktop + mobile -->
+        <app-license-banner></app-license-banner>
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </section>
+}
+@if (getPageUrl == '/login' || getPageUrl == '/signup' || getPageUrl == '/forgot' || getPageUrl == '/accessdenied') {
+  <section>
+    <router-outlet></router-outlet>
+  </section>
+}

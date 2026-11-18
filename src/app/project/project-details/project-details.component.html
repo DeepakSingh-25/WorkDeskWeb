@@ -1,0 +1,86 @@
+<div class="dashboard-content mt-60 pm-page" id="project">
+  @if (project) {
+    <div class="details-head px-3 px-sm-4 pt-3">
+      <div class="breadcrumb-lite mb-2">
+        <a routerLink="/projects">Projects</a> / {{ project.Name }}
+      </div>
+
+      @if (project.IsArchived) {
+        <div class="alert alert-warning d-flex justify-content-between align-items-center py-2">
+          <span>This project was archived on {{ project.ArchivedOn | date:'dd MMM yyyy' }}. It is read-only.</span>
+          @if (project.CanManage) {
+            <button class="btn btn-sm btn-outline" (click)="onRestore()">Restore</button>
+          }
+        </div>
+      }
+
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h2 class="fw-bold mb-0">{{ project.Name }}</h2>
+            <span class="pill" [ngClass]="ui.statusClass(project.Status)"><span class="dot"></span>{{ project.Status }}</span>
+          </div>
+          @if (project.ClientName) { <small class="text-gray">For {{ project.ClientName }}</small> }
+        </div>
+        @if (!project.IsArchived && (project.CanEdit || project.CanManage)) {
+          <div class="d-flex gap-2 align-items-center">
+            @if (project.CanEdit) {
+              <button class="btn btn-primary" (click)="onEdit()"><span class="icomoon icon-edit me-2" style="font-size:16px"></span> Edit Project</button>
+            }
+            @if (project.CanManage) {
+              <div class="dropdown">
+                <button type="button" class="btn btn-outline px-3" data-bs-toggle="dropdown" aria-expanded="false" title="More" aria-label="More actions">⋯</button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><button type="button" class="dropdown-item text-danger" (click)="onArchive()">Archive project</button></li>
+                </ul>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="row row-gap-3 py-3">
+        <div class="col-6 col-md-4 col-xl-3 meta-item">
+          <div class="label">Manager</div>
+          <div class="value d-flex align-items-center gap-2">
+            <span class="avatar" [ngClass]="ui.avatarClass(project.ManagerName)" style="width:26px;height:26px;font-size:10px">{{ ui.initials(project.ManagerName) }}</span>
+            {{ project.ManagerName }}
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-3 meta-item">
+          <div class="label">Due</div>
+          <div class="value">{{ project.EndDate | date:'dd MMM yyyy' }}</div>
+        </div>
+        <div class="col-12 col-md-4 col-xl-6 meta-item">
+          <div class="label d-flex justify-content-between"><span>Progress</span><b class="text-black">{{ project.Progress }}%</b></div>
+          <div class="progress-thin mt-2">
+            <div class="bar" [ngClass]="ui.progressClass(project.Progress, project.Health)" [style.width.%]="project.Progress"></div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="project-tabs">
+        @for (t of tabs; track t.path) {
+          <a [routerLink]="t.path" routerLinkActive="active">{{ t.label }}</a>
+        }
+        <a routerLink="/tasks/board" [queryParams]="{ project: project.ID }">Tasks</a>
+      </nav>
+    </div>
+
+    <div class="p-3 p-sm-4">
+      <router-outlet></router-outlet>
+    </div>
+  } @else if (loaded && loadError) {
+    <div class="text-center py-5" role="alert">
+      <h6>Could not load the project.</h6>
+      <p class="text-gray fs-13 mb-0">Check your connection and try again.</p>
+      <button type="button" class="btn btn-primary mx-auto mt-3" (click)="onRetry()">Retry</button>
+    </div>
+  } @else if (loaded) {
+    <div class="text-center py-5">
+      <img src="../../assets/images/no_record_found.webp" alt="" style="width: 220px;">
+      <h6>Project not found</h6>
+      <button type="button" class="btn btn-primary mx-auto mt-3" routerLink="/projects">Back to Projects</button>
+    </div>
+  }
+</div>

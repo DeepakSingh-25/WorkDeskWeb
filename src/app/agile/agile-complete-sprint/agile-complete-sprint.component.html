@@ -1,0 +1,40 @@
+<div class="agile-modal-backdrop" (click)="cancelled.emit()"></div>
+<div class="agile-modal" role="dialog" aria-modal="true" aria-labelledby="completeSprintTitle">
+  <div class="agile-modal-head">
+    <h5 id="completeSprintTitle" class="mb-0">Complete {{ sprint.Name }}</h5>
+    <button type="button" class="icon-btn" (click)="cancelled.emit()" aria-label="Close" style="color:#555">✕</button>
+  </div>
+  <div class="agile-modal-body">
+    @if (note) { <div class="info-note mb-3">{{ note }}</div> }
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <div class="mini-stat green"><b>{{ done.length }}</b><span>finished · {{ pts(done) }} story points</span></div>
+      </div>
+      <div class="col-6">
+        <div class="mini-stat orange"><b>{{ open.length }}</b><span>not finished · {{ pts(open) }} story points</span></div>
+      </div>
+    </div>
+
+    @if (open.length) {
+      <label class="form-label" for="drpMoveTo">Move unfinished work to</label>
+      <select id="drpMoveTo" class="form-select" [(ngModel)]="moveTo">
+        <option [ngValue]="null">Backlog</option>
+        @for (s of plannedSprints; track s.ID) { <option [ngValue]="s.ID">{{ s.Name }} (planned)</option> }
+      </select>
+      <div class="open-list mt-3">
+        @for (i of open; track i.ID) {
+          <div class="simple-row py-2">
+            <span class="simple-text text-truncate">{{ stripKey(i.Title) }}</span>
+            <span class="pill" [ngClass]="ui(i.Status)">{{ i.Status }}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="mb-0 text-gray">Everything is finished. Nice work!</p>
+    }
+  </div>
+  <div class="agile-modal-foot">
+    <button type="button" class="btn btn-danger" (click)="cancelled.emit()"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+    <button type="button" class="btn btn-primary" [disabled]="saving" (click)="confirm()"><span class="icomoon icon-check me-2"></span> Complete sprint</button>
+  </div>
+</div>

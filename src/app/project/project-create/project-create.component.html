@@ -1,0 +1,156 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60" id="project">
+  <div class="breadcrumb-lite mb-1">
+    <a routerLink="/projects">Projects</a> / {{ AddEdit === 'E' ? 'Edit Project' : 'Create Project' }}
+  </div>
+  <div class="mb-4">
+    <h2 class="fw-bold mb-0">{{ AddEdit === 'E' ? 'Edit Project' : 'Create Project' }}</h2>
+    <p class="text-gray mb-0 fs-13">Give the project a name, dates and a manager. Everything else is optional.</p>
+  </div>
+
+  <form [formGroup]="projectForm" (ngSubmit)="onSave()">
+    <div class="row row-gap-3">
+      <div class="col-xl-8">
+        <div class="card-box">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-7 mb-3">
+                <label for="name" class="form-label required">Project Name</label>
+                <input type="text" id="name" class="form-control" formControlName="txtName" placeholder="e.g. CRM Portal Revamp" autocomplete="off" maxlength="100">
+                @if (hasError('txtName', 'required')) { <div class="text-danger fs-13">Project Name is Required</div> }
+                @if (serverError('txtName'); as e) { <div class="text-danger fs-13">{{ e }}</div> }
+              </div>
+              <div class="col-md-5 mb-3">
+                <label for="client" class="form-label">Client</label>
+                <input type="text" id="client" class="form-control" formControlName="txtClient" placeholder="Client / Customer name" autocomplete="off">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="start" class="form-label required">Start Date</label>
+                <input type="date" id="start" class="form-control" formControlName="txtStartDate">
+                @if (hasError('txtStartDate', 'required')) { <div class="text-danger fs-13">Start Date is Required</div> }
+                @if (serverError('txtStartDate'); as e) { <div class="text-danger fs-13">{{ e }}</div> }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="end" class="form-label required">End Date</label>
+                <input type="date" id="end" class="form-control" formControlName="txtEndDate" [min]="projectForm.value.txtStartDate">
+                @if (hasError('txtEndDate', 'required')) { <div class="text-danger fs-13">End Date is Required</div> }
+                @if (serverError('txtEndDate'); as e) { <div class="text-danger fs-13">{{ e }}</div> }
+                @if (projectForm.errors?.['dateRange']) { <div class="text-danger fs-13">End Date must be after Start Date</div> }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="manager" class="form-label required">Project Manager</label>
+                <ng-select formControlName="drpManagerID" labelForId="manager" placeholder="Select Manager" appendTo="body">
+                  @for (u of drpUserData; track u.ID) { <ng-option [value]="u.ID">{{ u.Name }}</ng-option> }
+                </ng-select>
+                @if (hasError('drpManagerID', 'required')) { <div class="text-danger fs-13">Project Manager is Required</div> }
+                @if (serverError('drpManagerID'); as e) { <div class="text-danger fs-13">{{ e }}</div> }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="members" class="form-label">Team Members</label>
+                <ng-select formControlName="drpMemberIDs" labelForId="members" placeholder="Add Members" [multiple]="true" [closeOnSelect]="false" appendTo="body">
+                  @for (u of drpUserData; track u.ID) { <ng-option [value]="u.ID">{{ u.Name }}</ng-option> }
+                </ng-select>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-link px-0 text-decoration-none fs-13" (click)="moreOptions = !moreOptions">
+              {{ moreOptions ? '▾ Fewer options' : '▸ More options (description, budget, priority, status, code, category)' }}
+            </button>
+
+            @if (moreOptions) {
+              <div class="row border-top pt-3 mt-2">
+                <div class="col-12 mb-3">
+                  <label for="description" class="form-label">Description</label>
+                  <textarea id="description" class="form-control" formControlName="txtDescription" rows="4" maxlength="1000" placeholder="What is this project about? Goals, scope, deliverables..."></textarea>
+                  <div class="text-end text-gray fs-13">{{ projectForm.value.txtDescription?.length || 0 }}/1000</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="budget" class="form-label">Budget</label>
+                  <div class="input-group">
+                    <select class="form-select" style="max-width: 95px;" formControlName="drpCurrency" aria-label="Currency">
+                      @for (c of currencyOptions; track c) { <option [value]="c">{{ c }}</option> }
+                    </select>
+                    <input type="number" id="budget" class="form-control" formControlName="txtBudget" placeholder="0" min="0">
+                  </div>
+                  @if (hasError('txtBudget', 'min')) { <div class="text-danger fs-13">Budget cannot be negative</div> }
+                  @if (serverError('txtBudget'); as e) { <div class="text-danger fs-13">{{ e }}</div> }
+                </div>
+                @if (AddEdit === 'E') {
+                  <div class="col-md-6 mb-3">
+                    <label for="spent" class="form-label">Spent so far</label>
+                    <input type="number" id="spent" class="form-control" formControlName="txtSpent" placeholder="0" min="0">
+                    @if (hasError('txtSpent', 'min')) { <div class="text-danger fs-13">Spent cannot be negative</div> }
+                    @if (serverError('txtSpent'); as e) { <div class="text-danger fs-13">{{ e }}</div> }
+                  </div>
+                }
+                <div class="col-md-3 col-6 mb-3">
+                  <label for="priority" class="form-label required">Priority</label>
+                  <select id="priority" class="form-select" formControlName="drpPriority">
+                    @for (p of ui.priorityOptions; track p) { <option [value]="p">{{ p }}</option> }
+                  </select>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                  <label for="status" class="form-label required">Status</label>
+                  <select id="status" class="form-select" formControlName="drpStatus">
+                    @for (s of ui.statusOptions; track s) { <option [value]="s">{{ s }}</option> }
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="code" class="form-label required">Project Code</label>
+                  <input type="text" id="code" class="form-control" formControlName="txtCode" autocomplete="off" maxlength="20">
+                  @if (hasError('txtCode', 'required')) { <div class="text-danger fs-13">Project Code is Required</div> }
+                  @if (projectForm.controls['txtCode'].errors?.['exists']) { <div class="text-danger fs-13">Project code already exists.</div> }
+                  @if (serverError('txtCode'); as e) { <div class="text-danger fs-13">{{ e }}</div> }
+                  <small class="text-gray">Created for you. Change it only if your company uses its own codes.</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="category" class="form-label">Category</label>
+                  <ng-select formControlName="drpCategory" labelForId="category" placeholder="Select Category" [dropdownPosition]="'bottom'">
+                    @for (c of drpCategoryData; track c.ID) { <ng-option [value]="c.ID">{{ c.Name }}</ng-option> }
+                  </ng-select>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (limitReached) {
+            <div class="alert alert-warning mx-3 mb-3" role="alert">
+              {{ limitMessage }}
+              @if (canSeeBilling) { <a routerLink="/settings/billing" class="ms-1">See Plan &amp; License</a> }
+            </div>
+          }
+
+          <div class="sticky-actions d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span> {{ AddEdit === 'E' ? 'Update' : 'Save' }}</button>
+            <button type="button" class="btn btn-success" (click)="resetForm()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+            <button type="button" class="btn btn-danger" (click)="onCancel()"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live summary -->
+      <div class="col-xl-4">
+        <div class="card-box" style="position: sticky; top: 80px;">
+          <div class="card-head"><h5>Summary</h5></div>
+          <div class="card-body d-flex flex-column gap-3">
+            <div>
+              <div class="fw-600 text-black fs-5">{{ projectForm.value.txtName || 'Untitled Project' }}</div>
+              <small class="text-gray">{{ projectForm.value.txtClient || 'No client' }}</small>
+            </div>
+            <div><span class="pill" [ngClass]="ui.statusClass(projectForm.value.drpStatus)"><span class="dot"></span>{{ projectForm.value.drpStatus }}</span></div>
+            <div class="d-flex justify-content-between border-top pt-3">
+              <span class="text-gray">Length</span>
+              <span class="text-black">{{ durationDays ? durationDays + ' days' : '—' }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-gray">People</span>
+              <span class="text-black">{{ (projectForm.value.drpMemberIDs?.length || 0) + (projectForm.value.drpManagerID && !projectForm.value.drpMemberIDs?.includes(projectForm.value.drpManagerID) ? 1 : 0) }}</span>
+            </div>
+            <div class="border-top pt-3 fs-13 text-gray">
+              You can add milestones and change settings from the project page after saving.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

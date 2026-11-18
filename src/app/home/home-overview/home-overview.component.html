@@ -1,0 +1,190 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="home">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/dashboard">Dashboard</a> / Overview</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">{{ greeting }}, {{ firstName }}</h2>
+      <p class="text-gray mb-0 fs-13">{{ todayDate | date:'EEEE, dd MMMM yyyy' }} · here is what needs your attention today.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary" routerLink="/tasks/create"><span class="icomoon icon-plus1 me-2"></span>Create Task</a>
+    </div>
+  </div>
+  <app-home-nav></app-home-nav>
+
+  <!-- KPI tiles -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+      <a class="dashboard-box box-1 p-3 kpi-link d-block text-decoration-none" routerLink="/dashboard/tasks"><p>My open tasks</p><h5>{{ kpi.open }}</h5></a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a class="dashboard-box box-4 p-3 kpi-link d-block text-decoration-none" routerLink="/dashboard/tasks"><p>Due today</p><h5>{{ kpi.dueToday }}</h5></a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <a class="dashboard-box box-2 p-3 kpi-link d-block text-decoration-none" routerLink="/dashboard/tasks"><p>Late</p><h5 [class.text-danger]="kpi.overdue > 0">{{ kpi.overdue }}</h5></a>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="dashboard-box box-3 p-3"><p>Waiting for my approval</p><h5>{{ kpi.approvals }}</h5></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Today's focus -->
+    <div class="col-xl-7">
+      <div class="card-box h-100">
+        <div class="card-head">
+          <h5>Today's focus <span class="count-chip">{{ focus.length }}</span></h5>
+          <a routerLink="/dashboard/tasks" class="fs-13">View all tasks</a>
+        </div>
+        <div class="card-body py-1 px-3">
+          @for (t of focus; track t.ID) {
+            <div class="simple-row" (click)="ui.isControl($event) || openTask(t)">
+              <button type="button" class="check-btn" title="Mark done" (click)="markDone(t)" aria-label="Mark done">✓</button>
+              <span class="simple-text text-truncate"><b>{{ ui.stripKey(t.Title) }}</b> <span class="text-gray">· {{ t.ProjectName }}</span></span>
+              <span class="simple-time fw-600" [ngClass]="ui.dueClass(t)">{{ ui.dueLabel(t) }}</span>
+            </div>
+          } @empty {
+            <div class="text-center py-4">
+              <h6 class="mb-1">Nothing due today</h6>
+              <p class="text-gray fs-13 mb-2">You have no late tasks or tasks due today.</p>
+              <a class="btn btn-outline btn-sm" routerLink="/dashboard/tasks">See upcoming tasks</a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions + notifications -->
+    <div class="col-xl-5">
+      <div class="card-box mb-3">
+        <div class="card-head"><h5>Quick actions</h5></div>
+        <div class="card-body">
+          <div class="quick-actions">
+            <a routerLink="/tasks/create">Create task</a>
+            <a routerLink="/projects/create">Create project</a>
+            <a routerLink="/team/invite">Invite member</a>
+          </div>
+        </div>
+      </div>
+      <div class="card-box">
+        <div class="card-head">
+          <h5>Notifications</h5>
+          <a routerLink="/dashboard/notifications" class="fs-13">See all</a>
+        </div>
+        <div class="card-body py-1 px-3">
+          @for (n of notifications; track n.ID) {
+            @let s = ui.notifSentence(n, taskTitles);
+            <div class="simple-row" [class.unread]="!n.Read" (click)="openNotification(n)">
+              <span class="simple-text">@if (s.Who) {<b>{{ s.Who }}</b> }{{ s.Action }} @if (s.Target) {<b>{{ s.Target }}</b> }{{ s.After }}</span>
+              <span class="simple-time">{{ ui.ago(n.CreatedOn) }}</span>
+            </div>
+          } @empty {
+            <div class="text-center text-gray py-3 fs-13">No notifications.</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- My projects -->
+    <div class="col-12">
+      <div class="card-box">
+        <div class="card-head">
+          <h5>My projects</h5>
+          <a routerLink="/projects" class="fs-13">All projects</a>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            @for (p of projects; track p.ID) {
+              <div class="col-sm-6 col-xl-3">
+                <a class="mini-project" [routerLink]="['/projects', p.ID]">
+                  <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                    <div class="fw-600 text-black text-truncate min-w-0">{{ p.Name }}</div>
+                    <span class="pill" [ngClass]="ui.healthClass(p.Health)"><span class="dot"></span>{{ p.Health }}</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="progress-thin flex-grow-1"><div class="bar" [ngClass]="ui.progressClass(p.Progress, p.Health)" [style.width.%]="p.Progress"></div></div>
+                    <b class="fs-13">{{ p.Progress }}%</b>
+                  </div>
+                  <div class="fs-13 text-gray mt-2">{{ p.MyOpenTasks }} tasks for you · <span [class.text-danger]="p.DaysLeft < 0">{{ daysText(p.DaysLeft) }}</span></div>
+                </a>
+              </div>
+            } @empty {
+              <div class="col-12 text-center text-gray py-3">You are not part of any project yet.</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="col-12">
+      <div class="card-box">
+        <div class="card-head">
+          <h5>Recent activity</h5>
+        </div>
+        <div class="card-body py-1">
+          @for (a of activity; track a.ID) {
+            @let s = ui.simpleActivity(a);
+            <div class="simple-row" (click)="go(a)">
+              <span class="avatar" [ngClass]="ui.avatarClass(a.UserName)">{{ ui.initials(a.UserName) }}</span>
+              <span class="simple-text"><b>{{ a.UserName }}</b> {{ s.Action }} <b>{{ s.Target }}</b> {{ s.After }}</span>
+              <span class="simple-time">{{ ui.ago(a.CreatedOn) }}</span>
+            </div>
+          } @empty {
+            <div class="text-center text-gray py-3 fs-13">No recent activity.</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 text-center">
+      <button type="button" class="btn btn-outline btn-sm" (click)="showMore = !showMore">{{ showMore ? 'Show less' : 'Show more: this week and charts' }}</button>
+    </div>
+
+    @if (showMore) {
+      <!-- This week -->
+      <div class="col-12">
+        <div class="card-box">
+          <div class="card-head">
+            <h5>This week</h5>
+          </div>
+          <div class="card-body">
+            <p class="fs-13 text-gray mb-3">You logged <b class="text-black">{{ ui.formatMinutes(kpi.minutesWeek) }}</b> of work this week.</p>
+            <div class="week-strip">
+              @for (d of week; track d.date) {
+                <div class="week-day" [class.today]="isToday(d.date)">
+                  <div class="wd-head"><span>{{ dayName(d.date) }}</span><b>{{ dayNum(d.date) }}</b></div>
+                  @for (x of d.items.slice(0, 4); track x.ID) {
+                    <div class="cal-chip" [class.done]="x.Done" [class.late]="x.Late" [style.border-left-color]="x.Late ? null : ui.calMeta[x.Type].color"
+                      [title]="x.Title + ' — ' + x.Meta" (click)="go(x)">{{ ui.chipTitle(x.Title) }}</div>
+                  }
+                  @if (d.items.length > 4) { <small class="cal-more">+{{ d.items.length - 4 }} more</small> }
+                  @if (d.items.length === 0) { <small class="text-gray empty">—</small> }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="col-lg-5">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>My tasks by status</h5></div>
+          <div class="card-body">
+            <apx-chart [series]="statusSeries" [chart]="donutChart" [labels]="statusLabels" [colors]="statusColors"
+              [legend]="legendBottom" [plotOptions]="donutOptions" [dataLabels]="noLabels"></apx-chart>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>Tasks finished vs new tasks · last 8 weeks</h5></div>
+          <div class="card-body">
+            <apx-chart [series]="trendSeries" [chart]="trendChart" [xaxis]="trendXAxis" [yaxis]="trendYAxis" [plotOptions]="trendPlot"
+              [stroke]="trendStroke" [colors]="trendColors" [grid]="grid" [dataLabels]="noLabels" [legend]="legendTop"></apx-chart>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,72 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h6 class="fw-600 text-black mb-0">Comments</h6>
+  @if (comments.length > 1) {
+    <button class="btn btn-sm btn-link text-decoration-none p-0 fs-13" (click)="newestFirst = !newestFirst">{{ newestFirst ? 'Newest first' : 'Oldest first' }}</button>
+  }
+</div>
+
+<!-- composer -->
+<div class="d-flex gap-3 mb-4">
+  <span class="avatar" [ngClass]="ui.avatarClass(me)">{{ ui.initials(me) }}</span>
+  <div class="flex-grow-1">
+    <div class="composer">
+      @if (mentionOpen) {
+        <div class="mention-menu" role="listbox" aria-label="Mention a teammate">
+          @for (u of mentionOptions; track u.ID; let i = $index) {
+            <div class="opt" role="option" [class.active]="i === mentionIndex" [attr.aria-selected]="i === mentionIndex"
+              (mousedown)="$event.preventDefault(); pickMention(u.Name)" (mouseenter)="mentionIndex = i">
+              <span class="avatar mini-avatar" [ngClass]="ui.avatarClass(u.Name)">{{ ui.initials(u.Name) }}</span>
+              {{ u.Name }}
+            </div>
+          }
+        </div>
+      }
+      <textarea #composer class="form-control" rows="3" placeholder="Write a comment… type @ to mention a teammate"
+        [(ngModel)]="draft" (input)="onDraftInput()" (keydown)="onComposerKeydown($event)" (click)="onDraftInput()"
+        (blur)="mentionOpen = false" maxlength="2000" aria-label="New comment"></textarea>
+      <div class="composer-foot">
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="icon-btn" title="Mention someone" (click)="insertAt()" style="font-weight:700">@</button>
+          @if (draftMentions.length) {
+            <small class="text-gray">Will notify: <span class="text-primary">{{ draftMentions.join(', ') }}</span></small>
+          } @else {
+            <small class="text-gray d-none d-sm-inline">Ctrl + Enter to post</small>
+          }
+        </div>
+        <button class="btn btn-primary btn-sm py-1" (click)="post()" [disabled]="!draft.trim() || posting">Comment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- list -->
+@for (c of sortedComments; track c.ID) {
+  <div class="comment" [class.mine]="c.UserName === me">
+    <span class="avatar" [ngClass]="ui.avatarClass(c.UserName)">{{ ui.initials(c.UserName) }}</span>
+    <div class="flex-grow-1" style="min-width: 0;">
+      <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+        <b class="text-black fs-13">{{ c.UserName }}{{ c.UserName === me ? ' (you)' : '' }}</b>
+        <small class="text-gray" [title]="c.CreatedOn | date:'dd MMM yyyy, h:mm a'">{{ ui.ago(c.CreatedOn) }}</small>
+        @if (c.EditedOn) { <small class="text-gray fst-italic">edited</small> }
+        @if (c.UserName === me && editingId !== c.ID) {
+          <span class="ms-auto d-flex gap-2 fs-13">
+            <a href="javascript:void(0)" class="text-primary" (click)="startEdit(c)">Edit</a>
+            <a href="javascript:void(0)" class="text-danger" (click)="remove(c)">Delete</a>
+          </span>
+        }
+      </div>
+      @if (editingId === c.ID) {
+        <textarea class="form-control mb-2" rows="3" [(ngModel)]="editDraft" maxlength="2000" (keydown.escape)="$event.stopPropagation(); editingId = 0"></textarea>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary btn-sm py-1" (click)="saveEdit()" [disabled]="!editDraft.trim()">Save</button>
+          <button class="btn btn-sm btn-link text-decoration-none text-gray" (click)="editingId = 0">Cancel</button>
+        </div>
+      } @else {
+        <div class="comment-bubble">@for (p of c.parts; track $index) {@if (p.mention) {<span class="mention">{{ p.text }}</span>} @else {<span>{{ p.text }}</span>}}</div>
+      }
+    </div>
+  </div>
+}
+@if (comments.length === 0) {
+  <div class="text-center text-gray py-4">No comments yet. Write the first one above.</div>
+}

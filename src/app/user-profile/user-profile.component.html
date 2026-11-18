@@ -1,0 +1,146 @@
+<div class="dashboard-content p-3 p-sm-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 class="fw-bold">
+      User Profile
+    </h2>
+  </div>
+  <div class="coupans-body profile-card mt-3 p-4">
+    <form [formGroup]="userProfileForm" (ngSubmit)="onSave()" novalidate>
+
+      <!-- Profile photo -->
+      <div class="photo-row d-flex align-items-center gap-4 pb-4 mb-4 border-bottom">
+        <div class="photo-wrap">
+          <img class="photo" [src]="photo || photoService.defaultPhoto" alt="Profile photo">
+          <label for="photoInput" class="photo-edit" title="Change photo" [class.disabled]="photoBusy">
+            <span class="icomoon icon-edit"></span>
+          </label>
+        </div>
+        <div>
+          <h5 class="fw-semibold mb-1">Profile Photo</h5>
+          <p class="text-gray fs-14 mb-2" id="photoHelp">JPG, PNG or WEBP, up to 2 MB.</p>
+          <div class="d-flex gap-2">
+            <label for="photoInput" class="btn btn-outline-primary btn-sm mb-0" [class.disabled]="photoBusy"
+              [attr.aria-disabled]="photoBusy">
+              @if (photoBusy) {
+                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+              }
+              {{ photo ? 'Change Photo' : 'Upload Photo' }}
+            </label>
+            @if (photo) {
+              <button type="button" class="btn btn-light btn-sm" (click)="removePhoto()" [disabled]="photoBusy">Remove</button>
+            }
+          </div>
+          <input type="file" id="photoInput" class="d-none" accept="image/png, image/jpeg, image/webp"
+            aria-describedby="photoHelp" [disabled]="photoBusy" (change)="onPhotoSelected($event)">
+        </div>
+      </div>
+
+      <!-- Basic details -->
+      <h5 class="fw-semibold mb-3">Basic Details</h5>
+      <div class="row">
+        <div class="mb-3 col-12 col-md-6">
+          <label for="fullName" class="form-label"><span class="text-danger">*</span> Full Name</label>
+          <input type="text" formControlName="txtFullName" placeholder="Full Name" class="form-control"
+            id="fullName" autocomplete="name" maxlength="100" aria-describedby="fullNameError"
+            [attr.aria-invalid]="showError('txtFullName')">
+          @if (showError('txtFullName')) {
+            <div id="fullNameError" class="text-danger fs-13">{{ serverError('txtFullName') ?? 'Full name is required.' }}</div>
+          }
+        </div>
+
+        <div class="mb-3 col-12 col-md-6">
+          <label for="email" class="form-label">Email</label>
+          <input type="text" formControlName="txtEmail" class="form-control" id="email" readonly>
+        </div>
+
+        <div class="mb-3 col-12 col-md-6">
+          <label for="phone" class="form-label">Mobile Number</label>
+          <input type="text" formControlName="txtPhone" placeholder="Mobile Number" class="form-control"
+            id="phone" autocomplete="tel-national" maxlength="10" inputmode="numeric" aria-describedby="phoneError"
+            [attr.aria-invalid]="showError('txtPhone')">
+          @if (showError('txtPhone')) {
+            <div id="phoneError" class="text-danger fs-13">{{ serverError('txtPhone') ?? 'Enter a valid 10-digit mobile number.' }}</div>
+          }
+        </div>
+
+        <div class="mb-3 col-12 col-md-6">
+          <label for="company" class="form-label"><span class="text-danger">*</span> Company Name</label>
+          <input type="text" formControlName="txtCompanyName" placeholder="Company Name" class="form-control"
+            id="company" autocomplete="organization" maxlength="50" aria-describedby="companyError"
+            [attr.aria-invalid]="showError('txtCompanyName')">
+          @if (showError('txtCompanyName')) {
+            <div id="companyError" class="text-danger fs-13">{{ serverError('txtCompanyName') ?? 'Company name is required.' }}</div>
+          }
+        </div>
+      </div>
+
+      <!-- Address -->
+      <h5 class="fw-semibold mb-3 mt-2">Address</h5>
+      <div class="row">
+        <div class="mb-3 col-12">
+          <label for="address" class="form-label"><span class="text-danger">*</span> Address</label>
+          <textarea formControlName="txtAddress" placeholder="House / Street / Area" rows="2" class="form-control"
+            id="address" autocomplete="street-address" maxlength="100" aria-describedby="addressError"
+            [attr.aria-invalid]="showError('txtAddress')"></textarea>
+          @if (showError('txtAddress')) {
+            <div id="addressError" class="text-danger fs-13">{{ serverError('txtAddress') ?? 'Address is required.' }}</div>
+          }
+        </div>
+
+        <div class="mb-3 col-12 col-md-6">
+          <label for="country" class="form-label"><span class="text-danger">*</span> Country</label>
+          <ng-select formControlName="drpCountry" placeholder="Select Country" labelForId="country"
+            [items]="countryData" bindLabel="CountryName" bindValue="ID" [dropdownPosition]="'bottom'"
+            (change)="onCountryChange($event?.ID)">
+          </ng-select>
+          @if (showError('drpCountry')) {
+            <div id="countryError" class="text-danger fs-13">{{ serverError('drpCountry') ?? 'Select a country.' }}</div>
+          }
+        </div>
+
+        <div class="mb-3 col-12 col-md-6">
+          <label for="state" class="form-label"><span class="text-danger">*</span> State</label>
+          <ng-select formControlName="drpState" placeholder="Select State" labelForId="state"
+            [items]="stateData" bindLabel="StateName" bindValue="ID" [dropdownPosition]="'bottom'"
+            (change)="onStateChange($event?.ID)">
+          </ng-select>
+          @if (showError('drpState')) {
+            <div id="stateError" class="text-danger fs-13">{{ serverError('drpState') ?? 'Select a state.' }}</div>
+          }
+        </div>
+
+        <div class="mb-3 col-12 col-md-6">
+          <label for="city" class="form-label"><span class="text-danger">*</span> City</label>
+          <ng-select formControlName="drpCity" placeholder="Select City" labelForId="city"
+            [items]="cityData" bindLabel="CityName" bindValue="ID" [dropdownPosition]="'bottom'">
+          </ng-select>
+          @if (showError('drpCity')) {
+            <div id="cityError" class="text-danger fs-13">{{ serverError('drpCity') ?? 'Select a city.' }}</div>
+          }
+        </div>
+
+        <div class="mb-3 col-12 col-md-6">
+          <label for="pincode" class="form-label"><span class="text-danger">*</span> Pin Code</label>
+          <input type="text" class="form-control" maxlength="6" inputmode="numeric" id="pincode"
+            autocomplete="postal-code" formControlName="txtPinCode" placeholder="Pin Code"
+            aria-describedby="pincodeError" [attr.aria-invalid]="showError('txtPinCode')">
+          @if (showError('txtPinCode')) {
+            <div id="pincodeError" class="text-danger fs-13">{{ serverError('txtPinCode') ?? 'Pin code must be 6 digits.' }}</div>
+          }
+        </div>
+      </div>
+
+      <div class="border-top pt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary" [disabled]="saving || loading">
+          @if (saving) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          } @else {
+            <span class="icomoon icon-save me-2"></span>
+          }
+          Save
+        </button>
+        <button type="button" routerLink="/dashboard" class="btn btn-light">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

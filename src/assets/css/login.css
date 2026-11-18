@@ -1,0 +1,10 @@
+.bg-sec1{background-image: url(../images/login/log_in-bg.webp); background-position: center center; background-repeat: no-repeat; background-size: cover;}
+.form-shado{box-shadow: 1px 1px 23px rgba(0, 0, 0, 0.12);}
+.rounded-5{border-radius: 2rem !important;}
+.text{font-family: 'Poppins', sans-serif !important; font-size: 2rem; font-weight: 600;}
+.bg-sec1 .form-control, .bg-sec1 .form-select{border: 1.5px solid #0f393b2f;border-radius: 10px;}
+.bg-sec1 .form-label, .bg-sec1 .text-end, .bg-sec1 p{color: #000;}
+.bg-sec1 .form-control:focus-visible{outline: none;}
+.bg-sec1 .form-select:focus{box-shadow: none;}
+.bg-sec1 .btn-primary{justify-content: center;}
+.bg-sec1 a{text-decoration: underline; color: #0043E0;}

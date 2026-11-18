@@ -1,0 +1,150 @@
+/* ================= Sprint & Agile Management ================= */
+/* shared building blocks (cards, pills, board, drawer ...) come from project.css / task.css via .pm-page */
+
+/* ---------- sub navigation ---------- */
+#agile .agile-nav{border-bottom: 1px solid #CAD8FF;}
+#agile .agile-nav .project-tabs{gap: 22px;}
+#agile .agile-nav .project-tabs a{font-size: 14px; display: inline-flex; align-items: center;}
+#agile .project-picker .ng-select{min-width: 230px;}
+#agile .project-picker .ng-select .ng-select-container{min-height: 34px; height: 34px; border-radius: 8px;}
+
+/* ---------- common bits ---------- */
+#agile .min-w-0{min-width: 0;}
+#agile .type-icon{width: 18px; height: 18px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; flex-shrink: 0;}
+#agile .epic-dot{display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle;}
+#agile .avatar.sm{width: 26px; height: 26px; font-size: 10px;}
+#agile .avatar.xs{width: 20px; height: 20px; font-size: 8px; border-width: 1px;}
+#agile .avatar.unassigned{background: #EEF0F4; color: #8A94A6; border: 1px dashed #B5BDCC;}
+#agile .points-text{font-size: 12px; color: #7B7B7B; white-space: nowrap; flex-shrink: 0;}
+#agile .empty-drop{border: 1px dashed #CAD8FF; border-radius: 8px; padding: 14px; text-align: center; color: #8A94A6; font-size: 13px;}
+#agile .info-note{background: #EAF0FF; border: 1px solid #CAD8FF; color: #071C4D; border-radius: 10px; padding: 10px 14px; font-size: 13px;}
+#agile .pts-total{font-weight: 600; font-size: 13px; color: #071C4D; white-space: nowrap;}
+#agile .legend-sq{display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: middle;}
+
+/* ---------- backlog ---------- */
+#agile .backlog-section{background: #F4F7FF; border: 1px solid #DDE6FF; border-radius: 12px; margin-bottom: 16px; transition: background .15s, border-color .15s;}
+#agile .backlog-section.is-active{border-left: 4px solid #0043E0;}
+#agile .backlog-section.drag-over{background: #EAF0FF; border-color: #0043E0; border-style: dashed;}
+#agile .backlog-section-head{display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; cursor: pointer; user-select: none;}
+#agile .backlog-section-head h6{font-size: 15px; font-weight: 600; color: #000;}
+#agile .sprint-goal{padding: 0 16px 8px 40px; font-size: 13px; color: #555;}
+#agile .backlog-list{padding: 0 10px 10px; display: flex; flex-direction: column; gap: 4px;}
+#agile .backlog-item{display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #E3E9F7; border-radius: 8px; padding: 8px 12px; cursor: pointer; position: relative; transition: box-shadow .15s;}
+#agile .backlog-item:hover{box-shadow: 0 4px 12px rgba(0, 67, 224, .08); border-color: #CAD8FF;}
+#agile .backlog-item.dragging{opacity: .45;}
+#agile .backlog-item.drop-before::before{content: ''; position: absolute; left: 0; right: 0; top: -4px; height: 3px; border-radius: 3px; background: #0043E0;}
+#agile .backlog-item.is-done .title-col{text-decoration: line-through; color: #8A94A6;}
+#agile .backlog-item .grip{color: #B5BDCC; cursor: grab; font-size: 12px;}
+#agile .title-col{flex: 1; min-width: 0; color: #000; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+#agile .backlog-item .pill{padding: 1px 10px; font-size: 11px;}
+#agile .quick-create{display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: #fff; border: 1px solid #0043E0; border-radius: 8px; padding: 8px;}
+#agile .quick-create .form-control{flex: 1; min-width: 180px;}
+#agile .quick-add.text-start{padding-left: 14px;}
+
+/* ---------- drawer ---------- */
+#agile .issue-drawer{width: min(640px, 100vw);}
+#agile .issue-drawer .drawer-body{display: flex; flex-direction: column;}
+#agile .issue-drawer .sticky-actions{border-radius: 0;}
+#agile .issue-drawer .ng-select .ng-select-container{min-height: 40px; border-radius: 8px;}
+
+/* ---------- modal ---------- */
+#agile .agile-modal-backdrop{position: fixed; inset: 0; background: rgba(7, 28, 77, .4); z-index: 1050; animation: tdFade .2s;}
+#agile .agile-modal{position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(520px, calc(100vw - 24px)); max-height: calc(100dvh - 40px); background: #fff; border-radius: 14px; z-index: 1055; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(7, 28, 77, .25); overflow: hidden;}
+#agile .agile-modal.lg{width: min(820px, calc(100vw - 24px));}
+#agile .agile-modal > form{display: flex; flex-direction: column; min-height: 0; max-height: inherit;}
+#agile .agile-modal-head{padding: 16px 20px; border-bottom: 1px solid #CAD8FF; background: #F6FAFF; display: flex; justify-content: space-between; align-items: center;}
+#agile .agile-modal-head h5{font-size: 17px; font-weight: 600; color: #000;}
+#agile .agile-modal-body{padding: 20px; overflow-y: auto; flex: 1; min-height: 0;}
+#agile .agile-modal-foot{padding: 14px 20px; border-top: 1px solid #CAD8FF; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;}
+#agile .agile-modal .ng-select .ng-select-container{min-height: 40px; border-radius: 8px;}
+#agile .mini-stat{border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column;}
+#agile .mini-stat b{font-size: 24px; line-height: 1.1;}
+#agile .mini-stat span{font-size: 12px; color: #555;}
+#agile .mini-stat.green{background: #E8F7EF;} #agile .mini-stat.green b{color: #029848;}
+#agile .mini-stat.orange{background: #FFF4E0;} #agile .mini-stat.orange b{color: #C77800;}
+#agile .open-list{max-height: 220px; overflow-y: auto; border: 1px solid #EEF2FC; border-radius: 8px; padding: 6px 10px; font-size: 13px;}
+#agile .open-list .pill{padding: 1px 8px; font-size: 11px;}
+
+/* ---------- planning ---------- */
+#agile .capacity-bar{position: relative; height: 14px; border-radius: 10px; background: #E6ECFA;}
+#agile .capacity-bar .fill{height: 100%; border-radius: 10px; background: #029848; transition: width .3s;}
+#agile .capacity-bar .fill.near{background: #ffa529;}
+#agile .capacity-bar .fill.over{background: repeating-linear-gradient(45deg, #FB6240, #FB6240 8px, #E0401C 8px, #E0401C 16px);}
+#agile .velocity-bars{display: flex; flex-direction: column; gap: 10px;}
+#agile .v-row{display: grid; grid-template-columns: 120px 1fr 56px; align-items: center; gap: 10px; font-size: 13px;}
+#agile .v-name{white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #555;}
+#agile .v-track{display: flex; flex-direction: column; gap: 3px;}
+#agile .v-bar{height: 8px; border-radius: 6px; min-width: 2px;}
+#agile .v-bar.committed{background: #C9D6F7;}
+#agile .v-bar.completed{background: #029848;}
+#agile .v-val{text-align: right; font-weight: 600;}
+#agile .capacity-table th{font-size: 13px; white-space: nowrap; padding: 10px 14px;}
+#agile .capacity-table td{padding: 8px 14px;}
+#agile .num-input{width: 90px;}
+#agile .planner-col{background: #F4F7FF; border: 1px solid #DDE6FF; border-radius: 12px; display: flex; flex-direction: column; height: 560px; transition: background .15s, border-color .15s;}
+#agile .planner-col.sprint{background: #F6FAFF; border-color: #CAD8FF;}
+#agile .planner-col.over{border-color: #FB6240;}
+#agile .planner-col.drag-over{background: #EAF0FF; border-color: #0043E0; border-style: dashed;}
+#agile .planner-head{padding: 12px 14px; border-bottom: 1px solid #DDE6FF; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;}
+#agile .planner-head h6{font-size: 14px; font-weight: 600; color: #000;}
+#agile .planner-head .search input{height: 32px; font-size: 13px;}
+#agile .planner-body{padding: 10px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; scrollbar-width: thin;}
+#agile .plan-item{display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #E3E9F7; border-radius: 8px; padding: 8px 10px; cursor: grab;}
+#agile .plan-item:hover{box-shadow: 0 4px 12px rgba(0, 67, 224, .08);}
+#agile .plan-item.dragging{opacity: .45;}
+#agile .plan-item .title-col{font-size: 14px;}
+
+/* ---------- board ---------- */
+#agile .board-scroll{overflow-x: auto; padding-bottom: 12px;}
+#agile .board-scroll .board{overflow: visible; padding-bottom: 0; min-width: max-content;}
+#agile .board-head-row .board-col.head-only{background: #fff; max-height: none; border-radius: 12px 12px 0 0;}
+#agile .board-head-row .board-col-head{border-bottom: none;}
+#agile .lane-board{margin-top: 8px; margin-bottom: 4px;}
+#agile .lane-board .board-col{max-height: none; border-radius: 0 0 12px 12px;}
+#agile .lane-head{display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 8px; border-radius: 8px; background: #fff; border: 1px solid #E3E9F7; cursor: pointer; position: sticky; left: 0; width: fit-content; min-width: 260px;}
+#agile .board-card.is-done .title{text-decoration: line-through; color: #8A94A6;}
+
+/* ---------- epics ---------- */
+#agile .epic-card{background: #fff; border: 1px solid #CAD8FF; border-left: 5px solid #0043E0; border-radius: 10px; overflow: hidden;}
+#agile .epic-card-main{display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer;}
+#agile .epic-card-main:hover{background: #FAFBFE;}
+#agile .epic-stats{align-items: center; gap: 24px;}
+#agile .epic-stories{border-top: 1px solid #EEF2FC; background: #FAFBFE;}
+#agile .epic-stories .table-certificate, #agile .card-box > .table-certificate{border-radius: 0;}
+#agile .color-swatch{width: 30px; height: 30px; border-radius: 8px; border: 3px solid #fff; box-shadow: 0 0 0 1px #CAD8FF; cursor: pointer;}
+#agile .color-swatch.active{box-shadow: 0 0 0 2px #071C4D;}
+#agile .story-template{background: #F6FAFF; border: 1px solid #DDE6FF; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;}
+#agile .tpl-row{display: flex; align-items: flex-start; gap: 12px;}
+#agile .tpl-word{min-width: 70px; padding-top: 9px; font-weight: 600; color: #0043E0;}
+#agile .tpl-preview{font-style: italic; color: #071C4D; background: #fff; border-left: 3px solid #0043E0; border-radius: 6px; padding: 8px 12px;}
+
+/* ---------- retrospective ---------- */
+#agile .retro-col{background: #F4F7FF; border: 1px solid #DDE6FF; border-top: 4px solid #0043E0; border-radius: 12px; height: 100%; display: flex; flex-direction: column;}
+#agile .retro-col-head{padding: 12px 14px 6px;}
+#agile .retro-col-head h6{font-size: 15px; font-weight: 600; color: #000; display: flex; align-items: center;}
+#agile .retro-add{margin: 6px 12px 10px; background: #fff; border: 1px solid #E3E9F7; border-radius: 10px; padding: 10px;}
+#agile .retro-add textarea{resize: vertical; font-size: 14px;}
+#agile .retro-cards{padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px;}
+#agile .retro-card{background: #fff; border: 1px solid #E3E9F7; border-left: 4px solid #0043E0; border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(7, 28, 77, .04);}
+#agile .retro-card .text{white-space: pre-wrap; word-break: break-word; color: #000;}
+#agile .retro-card.done .text{text-decoration: line-through; color: #8A94A6;}
+#agile .retro-card .form-check-input:checked{background-color: #029848; border-color: #029848;}
+#agile .retro-card .action-field{font-size: 12px; min-height: 30px; max-width: 160px;}
+#agile .icon-btn.sm{width: 26px; height: 26px;}
+#agile .vote-btn{border: 1px solid #CAD8FF; background: #fff; border-radius: 50px; padding: 2px 10px; font-size: 12px; font-weight: 600; color: #0043E0; display: inline-flex; align-items: center; gap: 5px;}
+#agile .vote-btn:hover{background: #EAF0FF;}
+#agile .vote-btn.voted{background: #0043E0; border-color: #0043E0; color: #fff;}
+#agile .due-col{min-width: 52px; text-align: right;}
+
+@media (max-width: 767px){
+  #agile .project-picker{width: 100%;}
+  #agile .project-picker .ng-select{flex: 1; min-width: 0;}
+  #agile .key-col{min-width: 0;}
+  #agile .backlog-item{gap: 8px; padding: 8px;}
+  #agile .backlog-item .grip{display: none;}
+  #agile .v-row{grid-template-columns: 90px 1fr 48px;}
+  #agile .planner-col{height: 420px;}
+  #agile .retro-stats{gap: 16px;}
+  #agile .tpl-row{flex-direction: column; gap: 4px;}
+  #agile .tpl-word{padding-top: 0;}
+}

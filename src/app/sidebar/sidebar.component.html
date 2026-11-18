@@ -1,0 +1,49 @@
+<div class="navbar-container w-100 h-100">
+    <a class="logo" routerLink="/dashboard" title="Go to dashboard" aria-label="WorkDesk – go to dashboard">
+        <img src="../../assets/images/workdesk/workdesk-icon.svg" alt="WorkDesk">
+    </a>
+    <!--item list-->
+    <ul class="menu-list ps-0 scrollbar-none" style="height: 85vh;overflow-y: scroll;">
+        <li class="menu-item" [ngClass]="isActive('/dashboard')" (click)="toggleDropdown($event, '')">
+            <a class="menu-link icon-between" routerLink="/dashboard" name="/dashboard">
+                <div class="align-items-center d-flex gap-2">
+                    <span class="icomoon icon-dashboard"></span>
+                    <span class="menu-link-text">Dashboard</span>
+                </div>
+            </a>
+        </li>
+        @for (x of menu; track x.item.path) {
+            @if (x.state === 'locked') {
+                <!-- Not in the plan: shown only to people who can see Billing, links to the upgrade page -->
+                <li class="menu-item locked" (click)="toggleDropdown($event, '')">
+                    <a class="menu-link icon-between" routerLink="/accessdenied" [queryParams]="lockedQuery(x.item)"
+                        [attr.name]="x.item.path" [title]="x.item.label + ' is not in your plan'">
+                        <div class="align-items-center d-flex gap-2">
+                            <fa-icon [icon]="x.item.icon" style="font-size: 22px;" />
+                            <span class="menu-link-text">{{ x.item.label }} <fa-icon [icon]="faLock" class="lock-icon ms-1" aria-label="Not in your plan" /></span>
+                        </div>
+                    </a>
+                </li>
+            } @else {
+                <li class="menu-item" [ngClass]="isActive(x.item.path)" (click)="toggleDropdown($event, '')">
+                    <a class="menu-link icon-between" [routerLink]="x.item.path" [attr.name]="x.item.path">
+                        <div class="align-items-center d-flex gap-2">
+                            <fa-icon [icon]="x.item.icon" style="font-size: 22px;" />
+                            <span class="menu-link-text">{{ x.item.label }}</span>
+                        </div>
+                    </a>
+                </li>
+            }
+        }
+        @if (showSettings) {
+            <li class="menu-item" [ngClass]="isActive(settingsItem.path)" (click)="toggleDropdown($event, '')">
+                <a class="menu-link icon-between" [routerLink]="settingsItem.path" [attr.name]="settingsItem.path">
+                    <div class="align-items-center d-flex gap-2">
+                        <fa-icon [icon]="settingsItem.icon" style="font-size: 22px;" />
+                        <span class="menu-link-text">{{ settingsItem.label }}</span>
+                    </div>
+                </a>
+            </li>
+        }
+    </ul>
+</div>

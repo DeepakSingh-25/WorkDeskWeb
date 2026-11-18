@@ -1,0 +1,56 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="home">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/dashboard">Dashboard</a> / Notifications</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div><h2 class="fw-bold mb-0">Notifications</h2><p class="text-gray mb-0 fs-13">Updates about your work. You have {{ unreadCount }} unread.</p></div>
+    <div class="d-flex gap-2 align-items-center">
+      <a class="icon-btn" routerLink="/settings/notifications" title="Notification settings" aria-label="Notification settings"><span class="icomoon icon-setting"></span></a>
+      <button type="button" class="btn btn-primary" (click)="markAllRead()" [disabled]="!unreadCount"><span class="icomoon icon-check me-2"></span>Mark all read</button>
+    </div>
+  </div>
+  <app-home-nav></app-home-nav>
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div class="status-tabs">
+      <button type="button" [class.active]="!unreadOnly" (click)="setUnread(false)">All<span class="count">{{ total(false) }}</span></button>
+      <button type="button" [class.active]="unreadOnly" (click)="setUnread(true)">Unread<span class="count">{{ total(true) }}</span></button>
+    </div>
+    <select class="form-select form-select-sm w-auto" [ngModel]="type" (ngModelChange)="setType($event)" aria-label="Type">
+      <option value="">All types</option>
+      @for (t of types; track t) { <option [value]="t">{{ ui.notifLabels[t] }} ({{ count(t) }})</option> }
+    </select>
+  </div>
+
+  @for (g of groups; track g.name) {
+    <div class="act-day">{{ g.name }}</div>
+    <div class="card-box mb-3">
+      <div class="card-body py-1 px-3">
+        @for (n of g.items; track n.ID) {
+          @let s = ui.notifSentence(n, taskTitles);
+          <div class="simple-row" [class.unread]="!n.Read" (click)="ui.isControl($event) || open(n)">
+            @if (s.Who) {
+              <span class="avatar" [ngClass]="ui.avatarClass(s.Who)">{{ ui.initials(s.Who) }}</span>
+            }
+            <span class="simple-text">@if (s.Who) {<b>{{ s.Who }}</b> }{{ s.Action }} @if (s.Target) {<b>{{ s.Target }}</b> }{{ s.After }}</span>
+            @if (!n.Read) { <span class="unread-dot" title="Unread"></span> }
+            <span class="simple-time">{{ ui.ago(n.CreatedOn) }}</span>
+            <div class="dropdown">
+              <button type="button" class="icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="More" aria-label="More actions">⋯</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><button type="button" class="dropdown-item" (click)="toggleRead(n)">{{ n.Read ? 'Mark as unread' : 'Mark as read' }}</button></li>
+                <li><button type="button" class="dropdown-item text-danger" (click)="remove(n)">Delete</button></li>
+              </ul>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @empty {
+    <div class="card-box">
+      <div class="card-body text-center text-black py-4">
+        <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+        <h6>{{ unreadOnly ? 'You are all caught up' : 'No notifications yet' }}</h6>
+        @if (unreadOnly || type) { <button type="button" class="btn btn-outline btn-sm mt-2" (click)="setUnread(false); setType('')">Show all notifications</button> }
+      </div>
+    </div>
+  }
+</div>

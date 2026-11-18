@@ -1,0 +1,42 @@
+@if (filter) {
+  <div class="report-filter card-box">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <div class="preset-tabs" role="group" aria-label="Date range">
+        @for (p of presets; track p.key) {
+          <button type="button" [class.active]="filter.Preset === p.key" (click)="setPreset(p.key)">{{ p.label }}</button>
+        }
+      </div>
+      @if (filter.Preset === 'custom') {
+        <div class="d-flex align-items-center gap-1 date-range">
+          <input type="date" class="form-control form-control-sm" aria-label="From date" [ngModel]="filter.From" (ngModelChange)="setDate('From', $event)">
+          <span class="text-gray fs-13">to</span>
+          <input type="date" class="form-control form-control-sm" aria-label="To date" [ngModel]="filter.To" (ngModelChange)="setDate('To', $event)">
+        </div>
+      } @else {
+        <span class="text-gray fs-13">{{ reports.rangeLabel(filter) }}</span>
+      }
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center filter-bar">
+      <ng-select class="project-multi" [items]="projects" bindLabel="Name" bindValue="ID" [multiple]="true" [closeOnSelect]="false"
+        [maxSelectedItems]="10" placeholder="All projects" [ngModel]="filter.ProjectIDs" (ngModelChange)="setProjects($event)"
+        aria-label="Projects">
+        <ng-template ng-multi-label-tmp let-items="items">
+          <span class="ng-value-label px-1">{{ items.length === 1 ? items[0].Name : items.length + ' projects' }}</span>
+        </ng-template>
+      </ng-select>
+      @if (showTeam) {
+        @if (moreFilters || filter.TeamID) {
+          <select class="form-select form-select-sm w-auto" aria-label="Team" [ngModel]="filter.TeamID" (ngModelChange)="setTeam($event)">
+            <option [ngValue]="null">All teams</option>
+            @for (t of teams; track t.ID) { <option [ngValue]="t.ID">{{ t.Name }}</option> }
+          </select>
+        } @else {
+          <button type="button" class="btn btn-sm btn-link text-decoration-none" (click)="moreFilters = true">More filters</button>
+        }
+      }
+      @if (hasFilters) {
+        <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger" (click)="reset()">Clear</button>
+      }
+    </div>
+  </div>
+}

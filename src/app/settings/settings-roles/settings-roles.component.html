@@ -1,0 +1,208 @@
+<div class="breadcrumb-lite mb-1"><a routerLink="/settings">Settings</a> / Roles &amp; Permissions</div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h2 class="fw-bold mb-0">Roles &amp; Permissions</h2>
+    <p class="text-gray mb-0 fs-13">A role decides what people can see and change.</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <button type="button" class="btn btn-outline" [class.active-outline]="compareMode" (click)="toggleCompare()">{{ compareMode ? 'Close compare' : 'Compare roles' }}</button>
+    <button type="button" class="btn btn-primary" (click)="openCreate()"><span class="icomoon icon-plus1 me-2"></span> New role</button>
+  </div>
+</div>
+
+<div class="row row-gap-3">
+  <!-- Roles list -->
+  <div class="col-xl-4">
+    <div class="card-box">
+      <div class="card-head"><h5>Roles</h5></div>
+      <div class="role-list">
+        @for (r of roles; track r.ID) {
+          <div class="role-item" role="button" tabindex="0" [class.active]="r.ID === selectedId && !compareMode" (click)="onSelectRole(r)" (keydown.enter)="onSelectRole(r)">
+            <span class="role-dot" [style.background]="r.Color"></span>
+            <div class="flex-grow-1 min-w-0">
+              <span class="fw-600 text-black">{{ r.Name }}</span>
+              @if (!canEditRole(r)) { <fa-icon [icon]="faLock" class="text-gray ms-1 fs-13" [title]="lockTitle(r)" /> }
+              <span class="text-gray fs-13"> · {{ r.UserCount }} {{ r.UserCount === 1 ? 'person' : 'people' }}</span>
+            </div>
+            <div class="dropdown" (click)="$event.stopPropagation()">
+              <button type="button" class="icon-btn more-btn" data-bs-toggle="dropdown" aria-expanded="false" title="More actions" [attr.aria-label]="'More actions for ' + r.Name">⋯</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><button class="dropdown-item" type="button" (click)="openCreate(r)">Make a copy</button></li>
+                @if (!r.IsSystem) { <li><button class="dropdown-item text-danger" type="button" (click)="onDelete(r)">Delete</button></li> }
+              </ul>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-8">
+    @if (compareMode) {
+      <!-- Compare two roles -->
+      <div class="card-box">
+        <div class="card-head flex-wrap">
+          <h5>Compare roles</h5>
+          <span class="text-gray fs-13">{{ diffCount }} difference{{ diffCount === 1 ? '' : 's' }}</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              <label for="cmpA" class="form-label">Role A</label>
+              <ng-select labelForId="cmpA" [items]="roles" bindLabel="Name" bindValue="ID" [(ngModel)]="compareA" [clearable]="false"></ng-select>
+            </div>
+            <div class="col-sm-6">
+              <label for="cmpB" class="form-label">Role B</label>
+              <ng-select labelForId="cmpB" [items]="roles" bindLabel="Name" bindValue="ID" [(ngModel)]="compareB" [clearable]="false"></ng-select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="perm-table compare">
+              <thead>
+                <tr>
+                  <th class="text-start">Area</th>
+                  @for (a of actions; track a) { <th>{{ a }}</th> }
+                </tr>
+              </thead>
+              <tbody>
+                @for (m of modules; track m) {
+                  <tr>
+                    <td class="text-start fw-600 text-black">
+                      {{ m }}
+                      @if (rowNote(m); as note) { <small class="d-block fw-normal text-gray row-note">{{ note }}</small> }
+                    </td>
+                    @for (a of actions; track a) {
+                      <td [class.diff]="isDiff(m, a)">
+                        <div class="cmp-cell">
+                          <span class="cmp-mark" [class.yes]="cmp(compareA, m, a)" [style.border-color]="roleById(compareA)?.Color" [title]="(roleById(compareA)?.Name || '') + ': ' + (cmp(compareA, m, a) ? 'allowed' : 'not allowed')">{{ cmp(compareA, m, a) ? '✓' : '–' }}</span>
+                          <span class="cmp-mark" [class.yes]="cmp(compareB, m, a)" [style.border-color]="roleById(compareB)?.Color" [title]="(roleById(compareB)?.Name || '') + ': ' + (cmp(compareB, m, a) ? 'allowed' : 'not allowed')">{{ cmp(compareB, m, a) ? '✓' : '–' }}</span>
+                        </div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="d-flex gap-3 flex-wrap mt-3 fs-13 text-gray">
+            <span><span class="cmp-mark yes sm" [style.border-color]="roleById(compareA)?.Color">✓</span> left = {{ roleById(compareA)?.Name }}</span>
+            <span><span class="cmp-mark yes sm" [style.border-color]="roleById(compareB)?.Color">✓</span> right = {{ roleById(compareB)?.Name }}</span>
+            <span><span class="diff-swatch"></span> different</span>
+          </div>
+        </div>
+      </div>
+    } @else if (working) {
+      <!-- Permission matrix -->
+      <div class="card-box">
+        <div class="card-head flex-wrap">
+          <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+            <span class="role-dot lg" [style.background]="working.Color"></span>
+            @if (!canRename) {
+              <h5 class="text-truncate">{{ working.Name }}</h5>
+            } @else {
+              <input type="text" class="form-control form-control-sm role-name-input" [(ngModel)]="working.Name" maxlength="40" aria-label="Role name">
+            }
+          </div>
+          <span class="text-gray fs-13">{{ working.UserCount }} {{ working.UserCount === 1 ? 'person' : 'people' }}</span>
+        </div>
+        <div class="card-body">
+          <p class="text-gray fs-13 mb-3">Tick what people with this role can do in each area. Each row is one part of the app.</p>
+          @if (locked) {
+            <div class="lock-note mb-3">
+              <fa-icon [icon]="faLock" />
+              <div>{{ lockNote }} <a href="javascript:void(0)" (click)="openCreate(working)">Make a copy</a> to start a new role from it.</div>
+            </div>
+          } @else if (canRename) {
+            <input type="text" class="form-control form-control-sm mb-3" [(ngModel)]="working.Description" maxlength="160" placeholder="Describe what this role is for" aria-label="Role description">
+          }
+          <div class="table-responsive">
+            <table class="perm-table" [class.locked]="locked">
+              <thead>
+                <tr>
+                  <th class="text-start">Area</th>
+                  @for (a of actions; track a) {
+                    <th>
+                      <label class="d-flex flex-column align-items-center gap-1 mb-0">
+                        <span>{{ a }}</span>
+                        <input type="checkbox" class="form-check-input" [checked]="colAll(a)" [indeterminate]="colSome(a)" [disabled]="locked" (change)="toggleCol(a)" [attr.aria-label]="'Select all ' + a">
+                      </label>
+                    </th>
+                  }
+                  <th>All</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (m of modules; track m) {
+                  @let notInPlan = planLocked(m);
+                  <tr [class.not-in-plan]="notInPlan">
+                    <td class="text-start fw-600" [class.text-black]="!notInPlan" [class.text-muted]="notInPlan" [title]="moduleHints[m]">
+                      {{ m }}
+                      @if (notInPlan) { <span class="label-chip ms-1" [title]="planHint(m)">Not in plan</span> }
+                      @if (rowNote(m); as note) { <small class="d-block fw-normal text-gray row-note">{{ note }}</small> }
+                    </td>
+                    @for (a of actions; track a) {
+                      @let hint = cellHint(m, a);
+                      <td [attr.title]="hint"><input type="checkbox" class="form-check-input" [checked]="has(m, a)" [disabled]="locked || notInPlan" (change)="toggle(m, a)" [attr.aria-label]="m + ' ' + a + (hint ? ' — ' + hint : '')"></td>
+                    }
+                    <td><input type="checkbox" class="form-check-input" [checked]="rowAll(m)" [indeterminate]="rowSome(m)" [disabled]="locked || notInPlan" (change)="toggleRow(m)" [attr.aria-label]="'All ' + m"></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <small class="text-gray d-block mt-2">Any tick also allows View. "Manage" means changing the area's settings and who has access. Settings → Manage lets people manage users &amp; roles.</small>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+@if (dirty && !compareMode) {
+  <div class="unsaved-bar">
+    <span><span class="dot"></span> Unsaved changes to <b>{{ working?.Name }}</b></span>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-sm btn-light" (click)="onDiscard()">Discard</button>
+      <button type="button" class="btn btn-sm btn-success" (click)="onSave()"><span class="icomoon icon-save me-1"></span> Save changes</button>
+    </div>
+  </div>
+}
+
+<!-- Create / clone drawer -->
+@if (showCreate) {
+  <div class="drawer-backdrop" (click)="showCreate = false"></div>
+  <aside class="drawer drawer-sm" role="dialog" aria-modal="true" aria-label="New role">
+    <div class="drawer-head">
+      <h5 class="mb-0 fw-bold">{{ createForm.value.drpCopyFrom ? 'Copy role' : 'New role' }}</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="showCreate = false"></button>
+    </div>
+    <form class="drawer-body" [formGroup]="createForm" (ngSubmit)="onCreate()">
+      <div class="p-4">
+        <div class="mb-3">
+          <label for="crName" class="form-label required">Role Name</label>
+          <input type="text" id="crName" class="form-control" formControlName="txtName" maxlength="40">
+          @if (createForm.controls['txtName'].touched && createForm.controls['txtName'].invalid) { <div class="text-danger fs-13">Role Name is Required</div> }
+        </div>
+        <div class="mb-3">
+          <label for="crDesc" class="form-label">Description</label>
+          <textarea id="crDesc" class="form-control" rows="3" formControlName="txtDescription" maxlength="160"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="crCopy" class="form-label">Start from</label>
+          <ng-select formControlName="drpCopyFrom" labelForId="crCopy" [items]="roles" bindLabel="Name" bindValue="ID" placeholder="Empty (nothing allowed)"></ng-select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Color</label>
+          <div class="d-flex gap-2 flex-wrap">
+            @for (c of roleColors; track c) {
+              <button type="button" class="swatch sm" [style.background]="c" [class.active]="createForm.value.Color === c" (click)="createForm.patchValue({ Color: c })" [attr.aria-label]="'Color ' + c"></button>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="sticky-actions d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span> Create role</button>
+        <button type="button" class="btn btn-danger" (click)="showCreate = false"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+      </div>
+    </form>
+  </aside>
+}

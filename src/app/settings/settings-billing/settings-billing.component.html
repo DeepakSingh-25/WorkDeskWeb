@@ -1,0 +1,158 @@
+<div class="breadcrumb-lite mb-1"><a routerLink="/settings">Settings</a> / Plan &amp; License</div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h2 class="fw-bold mb-0">Plan &amp; License</h2>
+    <p class="text-gray mb-0 fs-13">Your plan, seats and which parts of WorkDesk you can use.</p>
+  </div>
+  @if (canUpload) {
+    <input #licenseFile type="file" accept=".lic" class="d-none" aria-label="License file" (change)="onFileSelected($event)">
+    <button type="button" class="btn btn-primary" [disabled]="uploading" (click)="chooseFile()">
+      <span class="icomoon icon-download me-2"></span> {{ uploading ? 'Uploading…' : 'Upload license' }}
+    </button>
+  }
+</div>
+
+@if (uploadError) {
+  <div class="warn-note mb-3" role="alert">
+    <fa-icon [icon]="faWarn" />
+    <div>{{ uploadError }}</div>
+  </div>
+}
+
+@if (!info && loadError) {
+  <div class="warn-note mb-3">
+    <fa-icon [icon]="faWarn" />
+    <div>{{ loadError }} <a href="javascript:void(0)" (click)="load()">Try again</a></div>
+  </div>
+}
+
+@if (info) {
+  <div class="d-flex flex-column gap-3">
+    @if (info.Problem) {
+      <div class="warn-note" role="alert"><fa-icon [icon]="faWarn" /><div>{{ info.Problem }}</div></div>
+    }
+    @if (info.ClockWarning) {
+      <div class="warn-note"><fa-icon [icon]="faWarn" /><div>The server clock looks wrong (it went back in time). Ask your IT team to check the date and time.</div></div>
+    }
+
+    <!-- 4 tiles -->
+    <div class="row g-3">
+      <div class="col-6 col-xl-3">
+        <div class="dashboard-box box-1 p-3 h-100">
+          <h5>{{ info.PlanName || 'No plan' }}</h5>
+          <p class="mb-1">Plan</p>
+          <span class="pill" [ngClass]="stateClass(info.State)"><span class="dot"></span> {{ stateLabel(info) }}</span>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="dashboard-box box-3 p-3 h-100">
+          <h5>{{ info.ExpiresAt ? (info.ExpiresAt | date: 'd MMM y') : 'No end date' }}</h5>
+          <p class="mb-0">Valid until</p>
+          @if (info.State === 'Grace' && info.GraceEndsAt) {
+            <span class="fs-13 text-danger">Renew by {{ info.GraceEndsAt | date: 'd MMM y' }}</span>
+          } @else if (info.DaysLeft !== null && info.DaysLeft >= 0) {
+            <span class="fs-13 text-gray">{{ info.DaysLeft }} {{ info.DaysLeft === 1 ? 'day' : 'days' }} left</span>
+          }
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="dashboard-box box-4 p-3 h-100">
+          <h5 [class.text-danger]="seatsOver">{{ info.SeatsUsed }} / {{ info.Seats }}</h5>
+          <p class="mb-2">Seats used</p>
+          <div class="progress-thin seat-bar"><div class="bar" [ngClass]="seatsOver ? 'red' : ui.meterClass(seatPct)" [style.width.%]="seatPct"></div></div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="dashboard-box box-2 p-3 h-100">
+          <div class="d-flex align-items-start gap-2">
+            <h5 class="mono install-id flex-grow-1 min-w-0">{{ info.InstallationID || 'Not available' }}</h5>
+            @if (info.InstallationID) {
+              <button type="button" class="icon-btn" title="Copy Installation ID" aria-label="Copy Installation ID" (click)="copyInstallationId()"><fa-icon [icon]="faCopy" /></button>
+            }
+          </div>
+          <p class="mb-0">Installation ID</p>
+          <span class="fs-13 text-gray">Send this to your vendor for a license.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Modules -->
+      <div class="col-xl-7">
+        <div class="p-0 table-certificate shadow table-responsive">
+          <table class="table rounded table-striped align-middle mb-0">
+            <thead>
+              <tr class="lightblue">
+                <th>Module</th>
+                <th>Included</th>
+                <th>Limit</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of info.Modules; track m.Module) {
+                <tr class="content">
+                  <td class="fw-600 text-black">{{ m.Module }}</td>
+                  <td>
+                    @if (m.InPlan) {
+                      <span class="text-success">✓ Included</span>
+                    } @else {
+                      <span class="text-gray"><fa-icon [icon]="faLock" class="me-1" /> Available in {{ m.AvailableIn.join(', ') || 'a higher plan' }}</span>
+                    }
+                  </td>
+                  <td class="text-gray fs-13">{{ limitText(m) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <small class="text-gray d-block mt-2">Settings and Billing are always available, on every plan.</small>
+      </div>
+
+      <!-- License -->
+      <div class="col-xl-5">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>License</h5></div>
+          <div class="card-body">
+            @if (info.License; as lic) {
+              <div class="field-grid">
+                <span class="k">Customer</span><span class="text-black">{{ lic.CustomerName }}</span>
+                <span class="k">License ID</span><span class="mono fs-13 text-break">{{ lic.LicenseID }}</span>
+                <span class="k">Issued</span><span>{{ lic.IssuedAt | date: 'd MMM y' }}</span>
+                <span class="k">Uploaded</span><span>{{ lic.UploadedAt | date: 'd MMM y, h:mm a' }} · {{ lic.UploadedByName || 'from the license file' }}</span>
+              </div>
+            } @else {
+              <p class="text-gray mb-0">No license is installed. Send the Installation ID to your vendor to get one.</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Downgrade confirmation (S3 409 CONFIRM_DOWNGRADE) -->
+@if (impacts; as i) {
+  <div class="modal-backdrop fade show"></div>
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="downgradeTitle">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="downgradeTitle">This license gives you less</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeDowngrade()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">{{ impactsMessage || 'Review what changes before you install it.' }}</p>
+          <ul class="mb-0 ps-3">
+            @for (line of impactLines(i); track line) {
+              <li class="mb-1">{{ line }}</li>
+            }
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="closeDowngrade()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="confirmDowngrade()">Install anyway</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

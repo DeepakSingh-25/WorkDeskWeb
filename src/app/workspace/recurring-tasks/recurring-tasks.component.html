@@ -1,0 +1,78 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="workspace">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/workspace">Workspace</a> / Recurring Tasks</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div><h2 class="fw-bold mb-0">Recurring Tasks</h2><p class="text-gray mb-0 fs-13">Tasks that are created for you on a schedule.</p></div>
+    <div class="d-flex gap-2"><button type="button" class="btn btn-primary" routerLink="/workspace/recurring/create">+ New Rule</button></div>
+  </div>
+  <app-workspace-nav></app-workspace-nav>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+      <div class="dashboard-box box-1 p-3 h-100"><h5>{{ count('Active') }}</h5><p class="mb-0">Rules turned on</p></div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="dashboard-box box-3 p-3 h-100"><h5>{{ runsDueThisWeek }}</h5><p class="mb-0">Tasks coming in the next 7 days</p></div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="dashboard-box box-4 p-3 h-100">
+        <h5 class="text-truncate">{{ nextUp?.NextRun ? (nextUp!.NextRun | date:'EEE dd MMM, HH:mm') : '—' }}</h5>
+        <p class="mb-0 text-truncate">Next task{{ nextUp ? ': ' + nextUp.Title : '' }}</p>
+      </div>
+    </div>
+    <div class="col-6 col-xl-3">
+      <div class="dashboard-box box-2 kpi-neutral p-3 h-100"><h5>{{ totalRuns }}</h5><p class="mb-0">Tasks created so far</p></div>
+    </div>
+  </div>
+
+  @if (created) {
+    <div class="success-banner mb-3" role="status">
+      <span class="icomoon icon-checked"></span>
+      <span class="flex-grow-1">The task <b>“{{ ui.stripKey(created.Title) }}”</b> was created.</span>
+      <a [routerLink]="['/tasks']" [queryParams]="{ task: created.TaskID }" class="fw-600">Open task →</a>
+      <button type="button" class="icon-btn" title="Dismiss" (click)="created = null"><fa-icon [icon]="faClose" /></button>
+    </div>
+  }
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div class="status-tabs">
+      <button type="button" [class.active]="statusTab === ''" (click)="statusTab = ''">All<span class="count">{{ count('') }}</span></button>
+      <button type="button" [class.active]="statusTab === 'Active'" (click)="statusTab = 'Active'">On<span class="count">{{ count('Active') }}</span></button>
+      <button type="button" [class.active]="statusTab === 'Paused'" (click)="statusTab = 'Paused'">Paused<span class="count">{{ count('Paused') }}</span></button>
+    </div>
+    <div class="search position-relative icomoon icon-search">
+      <input type="text" placeholder="Search rules" [(ngModel)]="search" autocomplete="off" aria-label="Search rules">
+    </div>
+  </div>
+
+  <div class="card-box">
+    <div class="card-body py-1">
+      @for (r of filtered; track r.ID) {
+        <div class="simple-row" [class.is-paused]="!r.Active">
+          <span class="simple-text clickable-text" role="button" tabindex="0" (click)="onEdit(r)" (keydown.enter)="onEdit(r)"
+            [title]="r.ProjectName + (r.AssigneeName ? ' · for ' + r.AssigneeName : '') + ' · ' + r.EndText">
+            <b>{{ r.Title }}</b> <span class="text-gray">· {{ r.Summary }} ·
+              @if (r.NextRun) { next on {{ r.NextRun | date:'dd MMM' }} } @else { {{ r.Active ? 'finished' : 'paused' }} }</span>
+          </span>
+          <div class="form-check form-switch m-0" [title]="r.Active ? 'On — click to pause' : 'Paused — click to turn on'">
+            <input class="form-check-input" type="checkbox" role="switch" [checked]="r.Active" (change)="toggleActive(r)" [attr.aria-label]="'Turn on ' + r.Title">
+          </div>
+          <div class="dropdown">
+            <button class="icon-btn more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More actions" [attr.aria-label]="'More actions for ' + r.Title">⋯</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><button class="dropdown-item" type="button" [disabled]="running === r.ID" (click)="runNow(r)">{{ running === r.ID ? 'Creating…' : 'Create the task now' }}</button></li>
+              <li><button class="dropdown-item" type="button" (click)="onEdit(r)">Edit</button></li>
+              @if (r.LastTaskID) { <li><a class="dropdown-item" [routerLink]="['/tasks']" [queryParams]="{ task: r.LastTaskID }">Open last task</a></li> }
+              <li><hr class="dropdown-divider"></li>
+              <li><button class="dropdown-item text-danger" type="button" (click)="onDelete(r)">Delete</button></li>
+            </ul>
+          </div>
+        </div>
+      } @empty {
+        <div class="text-center py-4">
+          <p class="text-gray mb-2">No recurring tasks yet.</p>
+          <button type="button" class="btn btn-outline btn-sm" routerLink="/workspace/recurring/create">+ New Rule</button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

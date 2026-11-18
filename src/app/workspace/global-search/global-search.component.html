@@ -1,0 +1,78 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="workspace">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/workspace">Workspace</a> / Search</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div><h2 class="fw-bold mb-0">Search</h2><p class="text-gray mb-0 fs-13">Find anything: projects, tasks, people, files and help.</p></div>
+  </div>
+  <app-workspace-nav></app-workspace-nav>
+
+  <ng-template #hl let-text let-q="q">@for (s of ui.segments(text, q); track $index) {@if (s.Match) {<mark class="hl">{{ s.Text }}</mark>} @else {{{ s.Text }}}}</ng-template>
+
+  <div class="search-hero">
+    <div class="big-search">
+      <span class="icomoon icon-search"></span>
+      <input #searchInput type="search" [value]="query" (input)="onInput($event)" (keydown)="onKeydown($event)"
+        placeholder="Type to search…" aria-label="Search everything" autocomplete="off" maxlength="100"
+        role="combobox" aria-controls="ws-results" [attr.aria-expanded]="flat.length > 0"
+        [attr.aria-activedescendant]="activeIndex >= 0 ? 'ws-sr-' + activeIndex : null">
+      @if (query) { <button type="button" class="icon-btn" title="Clear" (click)="clear()"><fa-icon [icon]="faClose" /></button> }
+    </div>
+  </div>
+
+  @if (q) {
+    <div class="status-tabs my-3">
+      <button type="button" [class.active]="!typeFilter" (click)="setType('')">All<span class="count">{{ counts['All'] || 0 }}</span></button>
+      @for (t of types; track t.Type) {
+        <button type="button" [class.active]="typeFilter === t.Type" (click)="setType(t.Type)">{{ t.Label }}<span class="count">{{ counts[t.Type] || 0 }}</span></button>
+      }
+    </div>
+
+    @if (!loaded) {
+      <div class="card-box"><div class="card-body text-center text-gray">Searching…</div></div>
+    } @else if (flat.length) {
+      <div class="card-box">
+        <div id="ws-results" role="listbox" aria-label="Search results" class="card-body py-1">
+          @for (r of flat; track r.Type + r.ID; let i = $index) {
+            <div class="simple-row clickable" role="option" [id]="'ws-sr-' + i" [class.active]="i === activeIndex"
+              [attr.aria-selected]="i === activeIndex" (click)="open(r)" (mouseenter)="activeIndex = i">
+              @if (r.Type === 'Person') { <span class="avatar" [ngClass]="ui.avatarClass(r.Title)">{{ ui.initials(r.Title) }}</span> }
+              <span class="simple-text text-truncate"><ng-container *ngTemplateOutlet="hl; context: { $implicit: ui.stripKey(r.Title), q: q }"></ng-container></span>
+              <span class="simple-time">{{ typeWord(r.Type) }}</span>
+            </div>
+          }
+          @if (hiddenCount) {
+            <div class="text-center fs-13 py-2 text-gray">Showing the top results. Pick a tab above to see all {{ counts['All'] }}.</div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="card-box">
+        <div class="card-body text-center py-5">
+          <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+          <h6 class="mt-2">Nothing found for “{{ q }}”@if (typeFilter) { <span> in {{ typeLabel(typeFilter) }}</span> }.</h6>
+          @if (typeFilter) { <button type="button" class="btn btn-outline btn-sm mt-2" (click)="setType('')">Search everything</button> }
+          @else { <button type="button" class="btn btn-outline btn-sm mt-2" (click)="clear()">Clear search</button> }
+        </div>
+      </div>
+    }
+  } @else {
+    <div class="card-box mt-3">
+      <div class="card-head">
+        <h5>Recent searches</h5>
+        @if (recent.length) { <button type="button" class="btn btn-sm btn-link text-decoration-none" (click)="clearRecent()">Clear</button> }
+      </div>
+      <div class="card-body py-1">
+        @for (r of recent; track r) {
+          <div class="simple-row clickable recent-item" (click)="useQuery(r)" role="button" tabindex="0" (keydown.enter)="useQuery(r)">
+            <span class="simple-text">{{ r }}</span>
+            <button type="button" class="icon-btn" title="Remove" (click)="removeRecent(r, $event)"><fa-icon [icon]="faClose" /></button>
+          </div>
+        } @empty {
+          <div class="py-3 fs-13 text-gray">
+            Nothing yet. Try:
+            @for (s of suggestions; track s) { <button type="button" class="chip-btn ms-1 mb-1" (click)="useQuery(s)">{{ s }}</button> }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

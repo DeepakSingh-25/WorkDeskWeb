@@ -1,0 +1,216 @@
+<div class="breadcrumb-lite mb-1"><a routerLink="/settings">Settings</a> / Users</div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h2 class="fw-bold mb-0">Users</h2>
+    <p class="text-gray mb-0 fs-13">See who can use the workspace and what they can do.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a routerLink="/team/invite" class="btn btn-primary"><span class="icomoon icon-plus1 me-2"></span> Invite user</a>
+  </div>
+</div>
+
+<!-- Seat usage -->
+<div class="card-box mb-3">
+  <div class="card-body py-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+      @if (seats) {
+        @let free = seatsFree ?? 0;
+        <span class="fs-13"><b class="text-black">{{ seatsUsed }} of {{ seatsTotal }} seats used</b>
+          <span class="text-gray"> · {{ free > 0 ? free + ' free' : 'no seats left' }}</span></span>
+      } @else {
+        <span class="fs-13 text-gray">Seat usage not available</span>
+      }
+      <span class="fs-13 text-gray">Seats come from your license@if (canSeeBilling) { · <a routerLink="/settings/billing">Manage</a>}</span>
+    </div>
+    <div class="progress-thin seat-bar"><div class="bar" [ngClass]="ui.meterClass(seatPct)" [style.width.%]="seatPct"></div></div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar d-flex gap-2 flex-wrap align-items-center mb-3">
+  <div class="search position-relative icomoon icon-search">
+    <input type="text" placeholder="Search people" [value]="searchValue" (input)="getSearchValue($event)" autocomplete="off" aria-label="Search users">
+  </div>
+  <ng-select [items]="roles" bindLabel="Name" bindValue="ID" placeholder="All roles" [(ngModel)]="roleFilter" (ngModelChange)="onFilterChange()"></ng-select>
+  <button type="button" class="btn btn-outline btn-sm" (click)="showMoreFilters = !showMoreFilters">{{ showMoreFilters ? 'Fewer filters' : 'More filters' }}</button>
+  @if (hasFilters) { <button type="button" class="btn btn-sm btn-link text-decoration-none text-danger" (click)="clearFilters()">Clear</button> }
+</div>
+@if (showMoreFilters || teamFilter) {
+  <div class="filter-bar d-flex gap-2 flex-wrap align-items-center mb-3">
+    <ng-select [items]="teams" bindLabel="Name" bindValue="ID" placeholder="All teams" [(ngModel)]="teamFilter" (ngModelChange)="onFilterChange()"></ng-select>
+  </div>
+}
+
+<div class="status-tabs mb-3">
+  @for (s of statusTabs; track s) {
+    <button type="button" [class.active]="statusTab === s" (click)="setStatusTab(s)">{{ s || 'All' }}<span class="count">{{ count(s) }}</span></button>
+  }
+</div>
+
+@if (selected.size) {
+  <div class="bulk-bar mb-3">
+    <span class="fw-600">{{ selected.size }} selected</span>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+      <ng-select class="bulk-role" [items]="assignableRoles" bindLabel="Name" bindValue="ID" placeholder="Change role to…" [(ngModel)]="bulkRoleID" appendTo="body"></ng-select>
+      <button type="button" class="btn btn-sm btn-primary" [disabled]="!bulkRoleID || overBulkLimit" (click)="bulkChangeRole()">Apply</button>
+      <button type="button" class="btn btn-sm btn-red" [disabled]="!canBulkSuspend" (click)="bulkStatus('Suspended')" title="Only active users can be suspended">Suspend</button>
+      <button type="button" class="btn btn-sm btn-outline" [disabled]="!canBulkReactivate" (click)="bulkStatus('Active')" [title]="seatsFree !== null && seatsFree < 1 ? 'No seats left. Upload a license with more seats in Plan & License.' : 'Only suspended users can be reactivated'">Reactivate</button>
+      <button type="button" class="btn btn-sm btn-link text-decoration-none" (click)="clearSelection()">Clear</button>
+    </div>
+    @if (overBulkLimit) { <small class="text-danger fs-13">Select at most {{ maxBulk }} users for a bulk action.</small> }
+  </div>
+}
+
+<div class="p-0 table-certificate shadow table-responsive">
+  <table class="table rounded table-striped align-middle">
+    <thead>
+      <tr class="lightblue">
+        <th style="width:40px"><input type="checkbox" class="form-check-input" [checked]="allPageSelected" (change)="toggleAllPage()" aria-label="Select all on page"></th>
+        <th>Name <a class="ms-1 cursor-pointer" (click)="orderBy('Name')"><img [src]="sortIcon('Name')" alt="arrow"></a></th>
+        <th>Role <a class="ms-1 cursor-pointer" (click)="orderBy('Role')"><img [src]="sortIcon('Role')" alt="arrow"></a></th>
+        <th>Status <a class="ms-1 cursor-pointer" (click)="orderBy('Status')"><img [src]="sortIcon('Status')" alt="arrow"></a></th>
+        <th>Last active <a class="ms-1 cursor-pointer" (click)="orderBy('LastActive')"><img [src]="sortIcon('LastActive')" alt="arrow"></a></th>
+        <th style="width:96px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (u of pageRows; track u.ID) {
+        <tr class="content" [class.row-selected]="selected.has(u.ID)">
+          <td><input type="checkbox" class="form-check-input" [checked]="selected.has(u.ID)" [disabled]="!isSelectable(u)" (change)="toggleSelect(u)" [attr.aria-label]="'Select ' + u.Name"></td>
+          <td style="min-width: 220px;">
+            <div class="d-flex align-items-center gap-2">
+              <span class="avatar" [ngClass]="ui.avatarClass(u.Name)">{{ ui.initials(u.Name) }}</span>
+              <div class="lh-sm min-w-0">
+                <div class="link-name" (click)="openEdit(u)">{{ u.Name }} @if (isSelf(u)) { <span class="text-gray fs-13">(you)</span> }</div>
+                <small class="text-gray">{{ u.Email }}</small>
+              </div>
+            </div>
+          </td>
+          <td>{{ roleName(u.RoleID) }}</td>
+          <td><span class="pill" [ngClass]="ui.userStatusClass(u.Status)"><span class="dot"></span>{{ u.Status }}</span></td>
+          <td class="text-gray">{{ u.Status === 'Invited' ? 'Not joined yet' : (u.LastActive ? ui.ago(u.LastActive) : 'Never') }}</td>
+          <td>
+            <div class="d-flex gap-1 justify-content-end">
+              <button class="icon-btn" title="Edit" (click)="openEdit(u)"><span class="icomoon icon-edit"></span></button>
+              <div class="dropdown">
+                <button class="icon-btn more-btn" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="More actions" [attr.aria-label]="'More actions for ' + u.Name">⋯</button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><button class="dropdown-item" type="button" (click)="onResetPassword(u)" [disabled]="!canResetPassword(u)">Send password reset</button></li>
+                  @if (canManage(u)) {
+                    @if (u.Status === 'Active') {
+                      <li><button class="dropdown-item" type="button" (click)="onToggleSuspend(u)">Suspend</button></li>
+                    } @else if (u.Status === 'Suspended') {
+                      <li><button class="dropdown-item" type="button" (click)="onToggleSuspend(u)" [disabled]="!canReactivate(u)">Reactivate{{ canReactivate(u) ? '' : ' (no seats left)' }}</button></li>
+                    }
+                    <li><button class="dropdown-item text-danger" type="button" (click)="onRemove(u)">Remove</button></li>
+                  }
+                  @if (canTransferSuperAdmin(u)) {
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item" type="button" (click)="onTransferSuperAdmin(u)">Transfer Super Admin</button></li>
+                  }
+                </ul>
+              </div>
+            </div>
+          </td>
+        </tr>
+      }
+    </tbody>
+    <tbody>
+      @if (pageRows.length == 0) {
+        <tr class="content">
+          <td colspan="6" class="text-center text-black">
+            <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+            <h6>No Record Found</h6>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<div class="pt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+  <div class="d-flex align-items-center gap-3">
+    <p class="totRecords mb-0">Records Found : {{ FilterRecords }}</p>
+    <select [(ngModel)]="cardsPerPage" (change)="onRecordsPerPageChange()" class="form-select form-select-sm" style="width: auto;" aria-label="Rows per page">
+      @for (option of recordsPerPageOptions; track option) { <option [value]="option">{{ option }} / page</option> }
+    </select>
+  </div>
+  <nav>
+    <ul class="pagination justify-content-center pagination-sm mb-0">
+      @if (currentPage > 1) { <li class="page-item" (click)="prevPage()"><a href="javascript:void(0)" class="page-link">Prev</a></li> }
+      @for (page of pageNumbers; track page) {
+        <li class="page-item" (click)="goToPage(page)" [class.active]="page === currentPage">
+          <a href="javascript:void(0)" class="page-link" [ngClass]="currentPage == page ? 'text-white' : ''">{{ page }}</a>
+        </li>
+      }
+      @if (currentPage < totalPages) { <li class="page-item" (click)="nextPage()"><a href="javascript:void(0)" class="page-link">Next</a></li> }
+    </ul>
+  </nav>
+</div>
+
+<!-- Edit drawer -->
+@if (editUser) {
+  <div class="drawer-backdrop" (click)="closeEdit()"></div>
+  <aside class="drawer drawer-sm" role="dialog" aria-modal="true" aria-label="Edit user">
+    <div class="drawer-head">
+      <div class="d-flex align-items-center gap-2">
+        <span class="avatar lg" [ngClass]="ui.avatarClass(editUser.Name)">{{ ui.initials(editUser.Name) }}</span>
+        <div><h5 class="mb-0 fw-bold">{{ editUser.Name }}</h5><small class="text-gray">{{ editUser.Email }}</small></div>
+      </div>
+      <button type="button" class="btn-close" aria-label="Close" (click)="closeEdit()"></button>
+    </div>
+    <form class="drawer-body" [formGroup]="editForm" (ngSubmit)="onSaveEdit()">
+      <div class="p-4">
+        <div class="mb-3">
+          <label for="euName" class="form-label required">Full Name</label>
+          <input type="text" id="euName" class="form-control" formControlName="txtName">
+          @if (editForm.controls['txtName'].touched && editForm.controls['txtName'].invalid) { <div class="text-danger fs-13">Full Name is Required</div> }
+        </div>
+        <div class="mb-3">
+          <label for="euRole" class="form-label required">Role</label>
+          <ng-select formControlName="drpRoleID" labelForId="euRole" [items]="editRoles" bindLabel="Name" bindValue="ID" [clearable]="false"></ng-select>
+          @if (isSelf(editUser)) { <small class="text-gray">You can't change your own role.</small> }
+          @else if (!canManage(editUser)) { <small class="text-gray">Only the Super Admin can edit the Super Admin.</small> }        </div>
+        <div class="mb-3">
+          <label for="euTeam" class="form-label">Team</label>
+          <ng-select formControlName="drpTeamID" labelForId="euTeam" [items]="teams" bindLabel="Name" bindValue="ID" placeholder="No team"></ng-select>
+        </div>
+        <div class="setting-row">
+          <div><p class="text-black">2-step login is set up</p><small class="text-gray">{{ editUser.TwoFactor ? 'Turn off to make them set it up again at next login.' : 'Not set up. Users turn on 2-step login themselves.' }}</small></div>
+          <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkTwoFactor" aria-label="2-step login set up"></div>
+        </div>
+
+        <button type="button" class="more-toggle mt-3" (click)="showMoreEdit = !showMoreEdit" [attr.aria-expanded]="showMoreEdit">
+          <span class="chev" [class.open]="showMoreEdit">›</span> More options
+        </button>
+        @if (showMoreEdit) {
+          <div class="mt-3">
+            <div class="mb-3">
+              <label for="euTitle" class="form-label">Job title</label>
+              <input type="text" id="euTitle" class="form-control" formControlName="txtDesignation">
+              @if (editForm.controls['txtDesignation'].invalid) { <div class="text-danger fs-13">Job title is too long.</div> }
+            </div>
+            <div class="mb-3">
+              <label for="euDept" class="form-label">Department</label>
+              <ng-select formControlName="drpDepartmentID" labelForId="euDept" [items]="departments" bindLabel="Name" bindValue="ID" placeholder="No department"></ng-select>
+            </div>
+            <div class="mb-3">
+              <label for="euLoc" class="form-label">Location</label>
+              <input type="text" id="euLoc" class="form-control" formControlName="txtLocation">
+              @if (editForm.controls['txtLocation'].invalid) { <div class="text-danger fs-13">Location is too long.</div> }
+            </div>
+            <div class="field-grid">
+              <span class="k">Status</span><span><span class="pill" [ngClass]="ui.userStatusClass(editUser.Status)"><span class="dot"></span>{{ editUser.Status }}</span></span>
+              <span class="k">Joined</span><span>{{ editUser.JoinedOn | date:'dd MMM yyyy' }}</span>
+              <span class="k">Last active</span><span>{{ editUser.LastActive ? ui.ago(editUser.LastActive) : 'Never' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="sticky-actions d-flex gap-2">
+        <button type="submit" class="btn btn-primary" [disabled]="!canEdit(editUser)"><span class="icomoon icon-save me-2"></span> Save</button>
+        <button type="button" class="btn btn-danger" (click)="closeEdit()"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+      </div>
+    </form>
+  </aside>
+}

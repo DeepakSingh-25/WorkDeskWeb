@@ -1,0 +1,131 @@
+<div class="row row-gap-3">
+  <div class="col-xl-9">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <h3 class="fw-bold mb-0">Members <small class="text-gray fs-6">({{ members.length }})</small></h3>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <select class="form-select form-select-sm w-auto" [(ngModel)]="roleFilter">
+          <option value="">All Roles</option>
+          @for (r of drpRoleData; track r) { <option [value]="r">{{ r }}</option> }
+        </select>
+        <div class="search position-relative icomoon icon-search">
+          <input type="text" placeholder="Search member" [(ngModel)]="searchValue" autocomplete="off">
+        </div>
+        @if (canEdit) {
+          <button type="button" class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMember" (click)="resetForm()">+ Add Member</button>
+        }
+      </div>
+    </div>
+
+    <div class="p-0 table-certificate shadow table-responsive">
+      <table class="table rounded table-striped align-middle">
+        <thead>
+          <tr class="lightblue">
+            <th>Member</th>
+            <th>Role</th>
+            <th>Time on project</th>
+            <th>Joined</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of filteredMembers; track m.ID) {
+            <tr class="content">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="avatar" [ngClass]="ui.avatarClass(m.Name)">{{ ui.initials(m.Name) }}</span>
+                  <div>
+                    <div class="text-black" [title]="m.Email">{{ m.Name }}
+                      @if (isManager(m)) { <span class="pill st-progress ms-1" style="font-size:10px;padding:1px 8px">Manager</span> }
+                      @if (m.UserStatus && m.UserStatus !== 'Active') { <span class="pill st-hold ms-1" style="font-size:10px;padding:1px 8px">{{ m.UserStatus }}</span> }
+                    </div>
+
+                  </div>
+                </div>
+              </td>
+              <td>{{ m.Role }}</td>
+              <td style="min-width: 150px;">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress-thin flex-grow-1"><div class="bar" [ngClass]="m.Allocation >= 100 ? 'green' : ''" [style.width.%]="m.Allocation"></div></div>
+                  <small class="fw-600">{{ m.Allocation }}%</small>
+                </div>
+              </td>
+              <td>{{ m.JoinedOn | date:'dd MMM yyyy' }}</td>
+              <td>
+                @if (canEdit) {
+                  <div class="d-flex gap-1">
+                    <button class="icon-btn" title="Edit" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMember" (click)="onEdit(m)"><span class="icomoon icon-edit"></span></button>
+                    <button class="icon-btn danger" title="Remove" (click)="onRemove(m)"><span class="icomoon icon-delete"></span></button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+        <tbody>
+          @if (filteredMembers.length == 0) {
+            <tr class="content">
+              <td colspan="5" class="text-center text-black">
+                <img src="../../assets/images/no_record_found.webp" alt="" style="width: 180px;">
+                <h6>No one found</h6>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Summary side -->
+  <div class="col-xl-3">
+    <div class="card-box">
+      <div class="card-head"><h5>Team at a glance</h5></div>
+      <div class="card-body d-flex flex-column gap-3">
+        <div class="d-flex justify-content-between"><span class="text-gray">Total members</span><b class="text-black">{{ members.length }}</b></div>
+        <div class="d-flex justify-content-between"><span class="text-gray">Full-time people</span><b class="text-black">{{ (totalAllocation / 100) | number:'1.0-1' }}</b></div>
+        <div class="border-top pt-3 d-flex flex-column gap-2">
+          @for (r of usedRoles; track r) {
+            <div class="d-flex justify-content-between fs-13"><span>{{ r }}</span><b class="text-black">{{ roleCount(r) }}</b></div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit member -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMember" aria-labelledby="offcanvasMemberLabel">
+  <div class="offcanvas-header">
+    <h2 class="fw-bold offcanvas-title" id="offcanvasMemberLabel">{{ memberForm.value.ID ? 'Edit Member' : 'Add Member' }}</h2>
+    <button type="button" #closebutton class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <form class="justify-content-between d-flex flex-column h-100" [formGroup]="memberForm" (ngSubmit)="onSave()">
+      <div>
+        <div class="mb-3">
+          <label for="memberUser" class="form-label required">User</label>
+          <ng-select formControlName="drpUserID" labelForId="memberUser" placeholder="Select User" [dropdownPosition]="'bottom'">
+            @for (u of availableUsers; track u.ID) { <ng-option [value]="u.ID">{{ u.Name }} — {{ u.Email }}</ng-option> }
+          </ng-select>
+          @if (memberForm.controls['drpUserID'].touched && memberForm.controls['drpUserID'].invalid) { <div class="text-danger fs-13">User is Required</div> }
+        </div>
+        <div class="mb-3">
+          <label for="memberRole" class="form-label required">Role</label>
+          <ng-select formControlName="drpRole" labelForId="memberRole" placeholder="Select Role" [dropdownPosition]="'bottom'">
+            @for (r of drpRoleData; track r) { <ng-option [value]="r">{{ r }}</ng-option> }
+          </ng-select>
+          @if (memberForm.controls['drpRole'].touched && memberForm.controls['drpRole'].invalid) { <div class="text-danger fs-13">Role is Required</div> }
+        </div>
+        <div class="mb-3">
+          <label for="memberAlloc" class="form-label required d-flex justify-content-between">Allocation <span class="text-primary">{{ memberForm.value.txtAllocation }}%</span></label>
+          <input type="range" id="memberAlloc" class="form-range" min="5" max="100" step="5" formControlName="txtAllocation">
+          <small class="text-gray">Share of this member's working time dedicated to the project.</small>
+        </div>
+      </div>
+      <div class="border-top py-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span> Save</button>
+        <button type="button" class="btn btn-success" (click)="resetForm()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="offcanvas"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+<!-- Checklist -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h6 class="fw-600 text-black mb-0">Checklist</h6>
+  @if (subtasks.length) { <small class="text-gray">{{ doneCount }} of {{ subtasks.length }} done</small> }
+</div>
+<div class="mb-2">
+  @for (s of subtasks; track s.ID) {
+    <div class="subtask" [class.done]="s.Done">
+      <input class="form-check-input" type="checkbox" [checked]="s.Done" (change)="toggle(s)" [attr.aria-label]="'Complete ' + s.Title">
+      <span class="st-title flex-grow-1">{{ s.Title }}</span>
+      @if (s.AssigneeName) {
+        <span class="avatar mini-avatar" [ngClass]="ui.avatarClass(s.AssigneeName)" [title]="s.AssigneeName">{{ ui.initials(s.AssigneeName) }}</span>
+      }
+      <button class="icon-btn danger" title="Remove" (click)="remove(s)"><span class="icomoon icon-delete small-icon"></span></button>
+    </div>
+  }
+  @if (subtasks.length === 0) { <p class="text-gray fs-13 mb-2">Break this task into smaller steps.</p> }
+</div>
+<div class="d-flex gap-2">
+  <input type="text" class="form-control form-control-sm" placeholder="Add an item and press Enter" [(ngModel)]="newSubtask" (keydown.enter)="addSubtask()" maxlength="150">
+  <button class="btn btn-primary btn-sm py-1" (click)="addSubtask()" [disabled]="!newSubtask.trim()">Add</button>
+</div>
+
+<!-- Waiting on / Blocking -->
+<div class="d-flex justify-content-between align-items-center mt-5 mb-2">
+  <h6 class="fw-600 text-black mb-0">Waiting on</h6>
+  @if (!showDependencyPicker) {
+    <button class="btn btn-sm btn-link text-decoration-none p-0" (click)="showDependencyPicker = true">+ Add a task to wait on</button>
+  }
+</div>
+
+@if (showDependencyPicker) {
+  <div class="d-flex gap-2 mb-3 align-items-center">
+    <ng-select class="flex-grow-1" [items]="candidateTasks" bindValue="ID" [searchFn]="searchTask" placeholder="Search a task in {{ task.ProjectName }}"
+      [(ngModel)]="selectedDependency" appendTo="body" [searchable]="true" bindLabel="Title">
+      <ng-template ng-option-tmp let-item="item">{{ ui.stripKey(item.Title) }} <span class="text-gray">· {{ item.Status }}</span></ng-template>
+    </ng-select>
+    <button class="btn btn-primary btn-sm py-1" (click)="addDependency()" [disabled]="!selectedDependency">Add</button>
+    <button class="btn btn-sm btn-link text-decoration-none text-gray" (click)="showDependencyPicker = false; selectedDependency = null">Cancel</button>
+  </div>
+}
+
+@if (openBlockers) {
+  <p class="text-danger fs-13 mb-2">Finish {{ openBlockers === 1 ? 'this task' : 'these ' + openBlockers + ' tasks' }} first.</p>
+}
+@for (t of blockedBy; track t.ID) {
+  <div class="simple-row">
+    <span class="simple-text cursor-pointer" (click)="openTask.emit(t.ID)" [title]="t.Title">{{ ui.stripKey(t.Title) }}</span>
+    <span class="simple-time">{{ t.Status }}</span>
+    <button class="icon-btn danger" title="Stop waiting on this task" aria-label="Remove" (click)="removeDependency(t)"><span class="icomoon icon-delete small-icon"></span></button>
+  </div>
+}
+@if (!blockedBy.length) { <p class="text-gray fs-13">This task is not waiting on anything.</p> }
+
+<h6 class="fw-600 text-black mt-4 mb-2">Blocking</h6>
+@for (t of blocking; track t.ID) {
+  <div class="simple-row clickable" (click)="openTask.emit(t.ID)">
+    <span class="simple-text" [title]="t.Title">{{ ui.stripKey(t.Title) }}</span>
+    <span class="simple-time">{{ t.Status }}</span>
+  </div>
+}
+@if (!blocking.length) { <p class="text-gray fs-13">No task is waiting on this one.</p> }

@@ -1,0 +1,54 @@
+input.otp {
+    font-size: 20px;
+}
+
+button.btn-close.position-absolute.close-btn {
+    top: 25px;
+    right: 20px;
+}
+
+::ng-deep.ng-select-container {
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+    border: 1.5px solid #0f393b2f !important;
+}
+
+::ng-deep .ng-select .ng-select-container .ng-placeholder {
+    color: rgba(0, 0, 0, 0.8) !important;
+    font-size: 16px !important;
+}
+
+::ng-deep .ng-select-container .ng-value {
+    color: black !important;
+    font-size: 16px !important;
+}
+
+::ng-deep .ng-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+    font-size: 16px !important;
+    color: black !important;
+    padding: 10px;
+}
+
+::ng-deep .ng-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option:hover {
+    background-color: lightgray !important;
+    color: black !important;
+}
+
+/* Password strength bar */
+.progress {
+    height: 6px;
+    border-radius: 5px;
+  }
+  
+  .progress-bar.bg-danger {
+    background-color: #dc3545;
+  }
+  
+  .progress-bar.bg-warning {
+    background-color: #ffc107;
+  }
+  
+  .progress-bar.bg-success {
+    background-color: #28a745;
+  }

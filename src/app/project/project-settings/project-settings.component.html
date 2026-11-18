@@ -1,0 +1,136 @@
+@if (project) {
+  <form [formGroup]="settingsForm" (ngSubmit)="onSave()">
+    <div class="row row-gap-3">
+      <div class="col-xl-8 d-flex flex-column gap-3">
+        <!-- General -->
+        <div class="card-box">
+          <div class="card-head"><h5>General</h5></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="setName" class="form-label required">Project Name</label>
+                <input type="text" id="setName" class="form-control" formControlName="txtName" maxlength="100">
+                @if (settingsForm.controls['txtName'].touched && settingsForm.controls['txtName'].invalid) { <div class="text-danger fs-13">Project Name is Required</div> }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="setManager" class="form-label required">Project Manager</label>
+                <ng-select formControlName="drpManagerID" labelForId="setManager" placeholder="Select Manager" [clearable]="false">
+                  @for (u of drpUserData; track u.ID) { <ng-option [value]="u.ID">{{ u.Name }}</ng-option> }
+                </ng-select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="setStatus" class="form-label required">Status</label>
+                <select id="setStatus" class="form-select" formControlName="drpStatus">
+                  @for (s of ui.statusOptions; track s) { <option [value]="s">{{ s }}</option> }
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="setPriority" class="form-label required">Priority</label>
+                <select id="setPriority" class="form-select" formControlName="drpPriority">
+                  @for (p of ui.priorityOptions; track p) { <option [value]="p">{{ p }}</option> }
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="button" class="btn btn-link px-0 text-decoration-none fs-13" (click)="moreOptions = !moreOptions">
+                  {{ moreOptions ? '▾ Fewer options' : '▸ More options (who can see it, default task view, working days)' }}
+                </button>
+              </div>
+            </div>
+            @if (moreOptions) {
+            <div class="row mt-2">
+              <div class="col-md-6 mb-3">
+                <label for="setVisibility" class="form-label">Who can see this project</label>
+                <select id="setVisibility" class="form-select" formControlName="drpVisibility">
+                  <option value="Private">Private — only members</option>
+                  <option value="Team">Team — members &amp; their managers</option>
+                  <option value="Organization">Organization — everyone</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="setView" class="form-label">Default Task View</label>
+                <select id="setView" class="form-select" formControlName="drpDefaultView">
+                  <option value="List">List</option>
+                  <option value="Board">Board</option>
+                  <option value="Timeline">Timeline</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Working Days</label>
+                <div class="d-flex gap-2 flex-wrap">
+                  @for (d of weekDays; track d) {
+                    <span class="day-chip" [class.active]="settingsForm.value.WorkingDays?.includes(d)" (click)="toggleDay(d)">{{ d }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Features & notifications -->
+        <div class="card-box">
+          <div class="card-head"><h5>Features and alerts</h5></div>
+          <div class="card-body py-1">
+            <div class="setting-row">
+              <div><p class="text-black">Time tracking</p><small class="text-gray">Allow members to log hours against tasks.</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkTimeTracking"></div>
+            </div>
+            <div class="setting-row">
+              <div><p class="text-black">Client access</p><small class="text-gray">Client can view progress and milestones (read-only).</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkClientAccess"></div>
+            </div>
+            <div class="setting-row">
+              <div><p class="text-black">Task assignment</p><small class="text-gray">Notify a member when a task is assigned to them.</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkNotifyOnTaskAssign"></div>
+            </div>
+            <div class="setting-row">
+              <div><p class="text-black">Status changes</p><small class="text-gray">Notify the team when project or task status changes.</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkNotifyOnStatusChange"></div>
+            </div>
+            <div class="setting-row">
+              <div><p class="text-black">Milestone reminders</p><small class="text-gray">Remind owners 3 days before a milestone is due.</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkNotifyOnMilestoneDue"></div>
+            </div>
+            <div class="setting-row">
+              <div><p class="text-black">Weekly report</p><small class="text-gray">Email a progress &amp; health summary every Monday.</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkWeeklyReport"></div>
+            </div>
+          </div>
+        </div>
+
+        @if (canManage) {
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" [disabled]="settingsForm.pristine"><span class="icomoon icon-save me-2"></span> Save Changes</button>
+            <button type="button" class="btn btn-danger" (click)="onDiscard()" [disabled]="settingsForm.pristine"><span class="icomoon icon-cancel me-2"></span> Discard</button>
+          </div>
+        }
+      </div>
+
+      <!-- Danger zone -->
+      @if (canManage || canDelete) {
+        <div class="col-xl-4">
+          <div class="card-box danger-zone">
+            <div class="card-head"><h5 class="text-danger">Archive or delete</h5></div>
+            <div class="card-body d-flex flex-column gap-4">
+              @if (canManage) {
+                <div>
+                  <p class="text-black mb-1">Archive project</p>
+                  <small class="text-gray d-block mb-2">Hide from active projects and make it read-only. You can restore it anytime.</small>
+                  <button type="button" class="btn btn-red" (click)="onArchive()">Archive Project</button>
+                </div>
+              }
+              @if (canDelete) {
+                <div class="border-top pt-3">
+                  <p class="text-black mb-1">Delete project</p>
+                  <small class="text-gray d-block mb-2">Permanently remove this project with its members, milestones and tasks.</small>
+                  <button type="button" class="btn btn-danger" (click)="onDelete()" [disabled]="!project.IsArchived"><span class="icomoon icon-delete me-2" style="font-size:16px"></span> Delete Project</button>
+                  @if (!project.IsArchived) { <small class="text-gray d-block mt-2">Archive the project first.</small> }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </form>
+}

@@ -1,0 +1,188 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60" id="project">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Projects</h2>
+      <p class="text-gray mb-0 fs-13">All projects, who runs them and how far along they are.</p>
+    </div>
+    <div class="d-flex gap-2">
+      @if (canCreate) {
+        <button type="button" class="btn btn-primary" routerLink="/projects/create">+ Create Project</button>
+      }
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="row row-gap-3 pt-4">
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-1 p-3 cursor-pointer" (click)="filterByStatus('')"><h5>{{ summary.Total ?? 0 }}</h5><p>All projects</p></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-3 p-3 cursor-pointer" (click)="filterByStatus('In Progress')"><h5>{{ summary.InProgress ?? 0 }}</h5><p>In progress</p></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-4 p-3 cursor-pointer" (click)="filterByStatus('On Hold')"><h5>{{ summary.OnHold ?? 0 }}</h5><p>On hold</p></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="dashboard-box box-2 p-3"><h5>{{ summary.Overdue ?? 0 }}</h5><p>Late</p></div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="search position-relative icomoon icon-search">
+        <input type="text" placeholder="Search projects" (input)="getSearchValue($event)" autocomplete="off">
+      </div>
+      <select class="form-select form-select-sm status-filter w-auto" [(ngModel)]="statusFilter" (change)="filterByStatus(statusFilter)" aria-label="Status">
+        <option value="">All statuses</option>
+        @for (s of ui.statusOptions; track s) { <option [value]="s">{{ s }}</option> }
+      </select>
+    </div>
+    <div class="view-toggle">
+      <button type="button" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'">Table</button>
+      <button type="button" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">Cards</button>
+    </div>
+  </div>
+
+  <!-- Table view -->
+  @if (viewMode === 'table') {
+    <div class="p-0 table-certificate shadow table-responsive">
+      <table class="table rounded table-striped align-middle">
+        <thead>
+          <tr class="lightblue">
+            <th>Project <a class="ms-1 cursor-pointer" (click)="orderBy('Name')"><img [src]="sortIcon('Name')" alt="arrow"></a></th>
+            <th>Manager</th>
+            <th>Due <a class="ms-1 cursor-pointer" (click)="orderBy('EndDate')"><img [src]="sortIcon('EndDate')" alt="arrow"></a></th>
+            <th>Progress <a class="ms-1 cursor-pointer" (click)="orderBy('Progress')"><img [src]="sortIcon('Progress')" alt="arrow"></a></th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (element of projectData; track element.ID) {
+            <tr class="content">
+              <td>
+                <div class="link-name" (click)="onView(element.ID)">{{ element.Name }}</div>
+                <small class="text-gray">{{ element.ClientName }}</small>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="avatar" [ngClass]="ui.avatarClass(element.ManagerName)">{{ ui.initials(element.ManagerName) }}</span>
+                  {{ element.ManagerName }}
+                </div>
+              </td>
+              <td>
+                <div>{{ element.EndDate | date:'dd MMM yyyy' }}</div>
+                @if (element.Status !== 'Completed' && element.Status !== 'Cancelled') {
+                  <small [class.text-danger]="ui.daysLeft(element.EndDate) < 0" [class.text-gray]="ui.daysLeft(element.EndDate) >= 0">{{ daysText(element.EndDate) }}</small>
+                }
+              </td>
+              <td style="min-width: 150px;">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress-thin flex-grow-1">
+                    <div class="bar" [ngClass]="ui.progressClass(element.Progress, element.Health)" [style.width.%]="element.Progress"></div>
+                  </div>
+                  <small class="fw-600">{{ element.Progress }}%</small>
+                </div>
+              </td>
+              <td><span class="pill" [ngClass]="ui.statusClass(element.Status)"><span class="dot"></span>{{ element.Status }}</span></td>
+              <td>
+                <div class="d-flex gap-1 align-items-center">
+                  <button class="icon-btn" title="View" (click)="onView(element.ID)"><span class="icomoon icon-eye"></span></button>
+                  @if (element.CanEdit) {
+                    <button class="icon-btn" title="Edit" (click)="onEdit(element.ID)"><span class="icomoon icon-edit"></span></button>
+                  }
+                  @if (element.CanManage) {
+                    <div class="dropdown">
+                      <button type="button" class="icon-btn" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="More" aria-label="More actions">⋯</button>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li><button type="button" class="dropdown-item text-danger" (click)="onArchive(element)">Archive</button></li>
+                      </ul>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+        <tbody>
+          @if (!loading && (projectData == null || projectData.length == 0)) {
+            <tr class="content">
+              <td valign="top" colspan="6" style="text-align: center;" class="text-black">
+                <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+                <h6>No Record Found</h6>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Grid view -->
+  @if (viewMode === 'grid') {
+    <div class="row row-gap-3">
+      @for (element of projectData; track element.ID) {
+        <div class="col-md-6 col-xl-4">
+          <div class="project-card" (click)="onView(element.ID)">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <h6>{{ element.Name }}</h6>
+              <span class="pill" [ngClass]="ui.statusClass(element.Status)">{{ element.Status }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress-thin flex-grow-1">
+                <div class="bar" [ngClass]="ui.progressClass(element.Progress, element.Health)" [style.width.%]="element.Progress"></div>
+              </div>
+              <span class="fw-600 fs-13">{{ element.Progress }}%</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+              <div class="avatar-stack">
+                @for (m of element.MemberIDs.slice(0, 4); track m) {
+                  <span class="avatar" [ngClass]="ui.avatarClass(userName(m))" [title]="userName(m)">{{ ui.initials(userName(m)) }}</span>
+                }
+                @if (element.MemberIDs.length > 4) { <span class="avatar" style="background:#8a94a6">+{{ element.MemberIDs.length - 4 }}</span> }
+              </div>
+              <small class="text-gray">Due {{ element.EndDate | date:'dd MMM yyyy' }}</small>
+            </div>
+          </div>
+        </div>
+      }
+      @if (!loading && projectData.length == 0) {
+        <div class="text-center py-5">
+          <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+          <h6>No Record Found</h6>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Pagination -->
+  <div class="pt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <p class="totRecords mb-0">Records Found : {{ FilterRecords }}</p>
+      <div class="d-flex align-items-center">
+        <label for="itemsPerPage" class="me-2 fs-13 text-gray">Rows per page</label>
+        <select id="itemsPerPage" [(ngModel)]="cardsPerPage" (change)="onRecordsPerPageChange()" class="form-select form-select-sm" style="width: auto;">
+          @for (option of recordsPerPageOptions; track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <nav>
+      <ul class="pagination justify-content-center pagination-sm mb-0">
+        @if (currentPage > 1) {
+          <li class="page-item" (click)="prevPage()"><a href="javascript:void(0)" class="page-link">Prev</a></li>
+        }
+        @for (page of pageNumbers; track page) {
+          <li class="page-item" (click)="goToPage(page)" [class.active]="page === currentPage">
+            <a href="javascript:void(0)" class="page-link" [ngClass]="currentPage == page ? 'text-white' : ''">{{ page }}</a>
+          </li>
+        }
+        @if (currentPage < totalPages) {
+          <li class="page-item" (click)="nextPage()"><a href="javascript:void(0)" class="page-link">Next</a></li>
+        }
+      </ul>
+    </nav>
+  </div>
+</div>

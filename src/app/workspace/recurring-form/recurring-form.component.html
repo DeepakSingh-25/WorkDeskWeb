@@ -1,0 +1,203 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="workspace">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/workspace">Workspace</a> / <a routerLink="/workspace/recurring">Recurring Tasks</a> / {{ AddEdit === 'A' ? 'New Rule' : 'Edit Rule' }}</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div><h2 class="fw-bold mb-0">{{ AddEdit === 'A' ? 'New Recurring Rule' : 'Edit Recurring Rule' }}</h2><p class="text-gray mb-0 fs-13">Say what task to create and how often.</p></div>
+  </div>
+  <app-workspace-nav></app-workspace-nav>
+
+  <form [formGroup]="ruleForm" (ngSubmit)="onSave()">
+    <div class="row row-gap-3">
+      <div class="col-xl-8 d-flex flex-column gap-3">
+        <!-- template -->
+        <div class="card-box">
+          <div class="card-head"><h5><span class="section-num">1</span> What task to create</h5></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="rTitle" class="form-label required">Title</label>
+                <input id="rTitle" type="text" class="form-control" formControlName="txtTitle" maxlength="150" placeholder="e.g. Weekly status report">
+                @if (isInvalid('txtTitle')) { <div class="text-danger fs-13">Title is Required</div> }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="rProject" class="form-label required">Project</label>
+                <ng-select formControlName="drpProjectID" labelForId="rProject" placeholder="Select Project" [clearable]="false">
+                  @for (p of drpProjectData; track p.ID) { <ng-option [value]="p.ID">{{ p.Name }}</ng-option> }
+                </ng-select>
+                @if (isInvalid('drpProjectID')) { <div class="text-danger fs-13">Project is Required</div> }
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="rAssignee" class="form-label">Assign to</label>
+                <ng-select formControlName="drpAssigneeID" labelForId="rAssignee" placeholder="Unassigned">
+                  @for (u of drpUserData; track u.ID) { <ng-option [value]="u.ID">{{ u.Name }}</ng-option> }
+                </ng-select>
+              </div>
+              <div class="col-12">
+                <button type="button" class="more-toggle" (click)="showMore = !showMore" [attr.aria-expanded]="showMore"><span class="chev" [class.open]="showMore">›</span> More options</button>
+              </div>
+              @if (showMore) {
+              <div class="col-12 my-3">
+                <label for="rDesc" class="form-label">Description</label>
+                <textarea id="rDesc" class="form-control" rows="3" formControlName="txtDescription" maxlength="2000"></textarea>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="rPriority" class="form-label required">Priority</label>
+                <select id="rPriority" class="form-select" formControlName="drpPriority">
+                  @for (p of priorities; track p) { <option [value]="p">{{ p }}</option> }
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="rEstimate" class="form-label">Expected work (hours)</label>
+                <input id="rEstimate" type="number" min="0" max="999" step="0.5" class="form-control" formControlName="txtEstimate">
+                @if (isInvalid('txtEstimate')) { <div class="text-danger fs-13">Estimate must be between 0 and 999</div> }
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="rDue" class="form-label">Due how many days later</label>
+                <input id="rDue" type="number" min="0" max="365" class="form-control" formControlName="txtDueOffset">
+                @if (isInvalid('txtDueOffset')) { <div class="text-danger fs-13">Enter 0 to 365 days</div> }
+              </div>
+              <div class="col-12">
+                <label for="rLabels" class="form-label">Labels</label>
+                <ng-select formControlName="drpLabels" labelForId="rLabels" [items]="drpLabelData" [multiple]="true" [addTag]="true" placeholder="Add labels"></ng-select>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- schedule -->
+        <div class="card-box">
+          <div class="card-head"><h5><span class="section-num">2</span> How often</h5></div>
+          <div class="card-body">
+            <label class="form-label required">Repeat</label>
+            <div class="freq-tabs mb-3" role="radiogroup" aria-label="Repeat">
+              @for (f of frequencies; track f.Value) {
+                <label [class.active]="ruleForm.controls.drpFrequency.value === f.Value">
+                  <input type="radio" formControlName="drpFrequency" [value]="f.Value"> {{ f.Label }}
+                </label>
+              }
+            </div>
+
+            @switch (ruleForm.controls.drpFrequency.value) {
+              @case ('Weekly') {
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                    <label class="form-label required mb-0">On these days</label>
+                    <div class="d-flex gap-2 fs-13">
+                      <a class="cursor-pointer text-primary" (click)="setWeekdaysPreset('weekdays')">Weekdays</a>·
+                      <a class="cursor-pointer text-primary" (click)="setWeekdaysPreset('all')">Every day</a>·
+                      <a class="cursor-pointer text-primary" (click)="setWeekdaysPreset('none')">Clear</a>
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2">
+                    @for (d of weekdayOrder; track d) {
+                      <span class="day-chip" [class.active]="hasDay(d)" (click)="toggleDay(d)" role="checkbox" [attr.aria-checked]="hasDay(d)" tabindex="0" (keydown.space)="toggleDay(d); $event.preventDefault()">{{ ui.weekdaysShort[d] }}</span>
+                    }
+                  </div>
+                  @if (submitted && ruleForm.errors?.['noWeekday']) { <div class="text-danger fs-13 mt-1">Select at least one weekday</div> }
+                </div>
+              }
+              @case ('Monthly') {
+                <div class="mb-3">
+                  <div class="form-check mb-2 d-flex align-items-center gap-2 flex-wrap">
+                    <input class="form-check-input m-0" type="radio" id="mDay" formControlName="drpMonthlyMode" value="Day">
+                    <label class="form-check-label" for="mDay">On day</label>
+                    <select class="form-select form-select-sm w-auto" formControlName="drpMonthDay" aria-label="Day of month">
+                      @for (n of monthDays; track n) { <option [ngValue]="n">{{ n }}</option> }
+                    </select>
+                    <small class="text-gray">(last day used for shorter months)</small>
+                  </div>
+                  <div class="form-check d-flex align-items-center gap-2 flex-wrap">
+                    <input class="form-check-input m-0" type="radio" id="mWeekday" formControlName="drpMonthlyMode" value="Weekday">
+                    <label class="form-check-label" for="mWeekday">On the</label>
+                    <select class="form-select form-select-sm w-auto" formControlName="drpMonthWeek" aria-label="Week of month">
+                      @for (o of ordinals; track o.Value) { <option [ngValue]="o.Value">{{ o.Label }}</option> }
+                    </select>
+                    <select class="form-select form-select-sm w-auto" formControlName="drpMonthWeekday" aria-label="Weekday">
+                      @for (d of weekdayOrder; track d) { <option [ngValue]="d">{{ ui.weekdays[d] }}</option> }
+                    </select>
+                  </div>
+                </div>
+              }
+              @case ('Custom') {
+                <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+                  <label for="rInterval" class="form-label mb-0 required">Every</label>
+                  <input id="rInterval" type="number" min="1" max="365" class="form-control form-control-sm" style="width: 90px;" formControlName="txtIntervalDays">
+                  <span>days</span>
+                  @if (isInvalid('txtIntervalDays')) { <div class="text-danger fs-13 w-100">Interval must be between 1 and 365</div> }
+                </div>
+              }
+            }
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="rTime" class="form-label required">Time</label>
+                <input id="rTime" type="time" class="form-control" formControlName="txtTime">
+                @if (isInvalid('txtTime')) { <div class="text-danger fs-13">Time is Required</div> }
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="rStart" class="form-label required">Start date</label>
+                <input id="rStart" type="date" class="form-control" formControlName="txtStartDate">
+                @if (isInvalid('txtStartDate')) { <div class="text-danger fs-13">Start date is Required</div> }
+              </div>
+            </div>
+
+            <label class="form-label">Ends</label>
+            <div class="d-flex flex-column gap-2">
+              <div class="form-check d-flex align-items-center gap-2">
+                <input class="form-check-input m-0" type="radio" id="eNever" formControlName="rdoEndMode" value="Never">
+                <label class="form-check-label" for="eNever">Never</label>
+              </div>
+              <div class="form-check d-flex align-items-center gap-2 flex-wrap">
+                <input class="form-check-input m-0" type="radio" id="eDate" formControlName="rdoEndMode" value="OnDate">
+                <label class="form-check-label" for="eDate">On</label>
+                <input type="date" class="form-control form-control-sm w-auto" formControlName="txtEndDate" aria-label="End date">
+                @if (submitted && ruleForm.errors?.['endDate']) { <span class="text-danger fs-13">End date must be on or after the start date</span> }
+              </div>
+              <div class="form-check d-flex align-items-center gap-2 flex-wrap">
+                <input class="form-check-input m-0" type="radio" id="eAfter" formControlName="rdoEndMode" value="After">
+                <label class="form-check-label" for="eAfter">After</label>
+                <input type="number" min="1" max="999" class="form-control form-control-sm" style="width: 90px;" formControlName="txtEndAfter" aria-label="Occurrences">
+                <span>times</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-box">
+          <div class="card-body">
+            <div class="setting-row py-0">
+              <div><p class="fw-600">Turned on</p><small class="text-gray">When off, no tasks are created.</small></div>
+              <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" formControlName="chkActive" aria-label="Turned on"></div>
+            </div>
+          </div>
+          <div class="sticky-actions d-flex gap-2 justify-content-end flex-wrap">
+            <button type="button" class="btn btn-danger" (click)="onCancel()"><span class="icomoon icon-cancel me-2"></span>Cancel</button>
+            <button type="button" class="btn btn-success" (click)="onReset()"><span class="icomoon icon-reset me-2"></span>Reset</button>
+            <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span>Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- preview -->
+      <div class="col-xl-4">
+        <div class="card-box preview-card">
+          <div class="card-head"><h5>Preview</h5></div>
+          <div class="card-body">
+            <div class="schedule-summary">{{ summary }}</div>
+            <small class="text-gray">Starting {{ ruleForm.controls.txtStartDate.value | date:'dd MMM yyyy' }} · {{ endText }}</small>
+            <p class="fs-13 mt-3 mb-2">Creates <b>{{ ruleForm.controls.txtTitle.value || 'a task' }}</b> in <b>{{ ui.projectName(ruleForm.controls.drpProjectID.value) || 'no project yet' }}</b>{{ ui.userName(ruleForm.controls.drpAssigneeID.value) ? ' for ' + ui.userName(ruleForm.controls.drpAssigneeID.value) : '' }}.</p>
+            <h6 class="fw-600 mt-3 mb-1">Next dates</h6>
+            @for (d of preview; track d.getTime()) {
+              <div class="occ-row">
+                <span class="flex-grow-1">{{ d | date:'EEE dd MMM, HH:mm' }}</span>
+                <small class="text-gray">due {{ dueFor(d) | date:'dd MMM' }}</small>
+              </div>
+            } @empty {
+              <p class="text-gray fs-13 mb-0">No upcoming dates with these settings.</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

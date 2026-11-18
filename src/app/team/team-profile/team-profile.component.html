@@ -1,0 +1,166 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="team">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/team">Team</a> / {{ member?.Name || 'Profile' }}</div>
+
+  @if (notFound) {
+    <div class="card-box text-center p-5 mt-3">
+      <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;" class="mx-auto">
+      <h6>We could not find this person.</h6>
+      <div><button type="button" class="btn btn-primary mt-2" routerLink="/team">Back to Directory</button></div>
+    </div>
+  }
+
+  @if (member) {
+    <!-- Profile header -->
+    <div class="card-box profile-head mt-2">
+      <div class="card-body d-flex flex-wrap gap-4 align-items-start">
+        <div class="d-flex gap-3 align-items-center flex-grow-1 min-w-0">
+          <span class="avatar lg profile-avatar" [ngClass]="ui.avatarClass(member.Name)">{{ ui.initials(member.Name) }}</span>
+          <div class="min-w-0">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h2 class="fw-bold mb-0">{{ member.Name }}</h2>
+              @if (member.Status !== 'Active') { <span class="pill" [ngClass]="ui.memberStatusClass(member.Status)">{{ member.Status }}</span> }
+            </div>
+            <div class="text-gray">{{ member.Designation }} · {{ member.Location }}</div>
+            @if (member.Skills.length) {
+              <div class="d-flex gap-1 mt-2">
+                <span class="label-chip">{{ member.Skills[0] }}</span>
+                @if (member.Skills.length > 1) { <span class="label-chip" [title]="member.Skills.slice(1).join(', ')">+{{ member.Skills.length - 1 }}</span> }
+              </div>
+            }
+          </div>
+        </div>
+        <div class="row row-gap-3 flex-grow-1 profile-meta">
+          <div class="col-6 col-md-3 meta-item">
+            <div class="label">Team</div>
+            <div class="value">{{ teamName(member.TeamID) || '—' }}</div>
+            <small class="text-gray">{{ deptName(member.DepartmentID) }}</small>
+          </div>
+          <div class="col-6 col-md-3 meta-item">
+            <div class="label">Manager</div>
+            @if (manager) {
+              <a class="value link-name" [routerLink]="['/team/people', manager.ID]">{{ manager.Name }}</a>
+            } @else { <div class="value">—</div> }
+          </div>
+          <div class="col-6 col-md-3 meta-item">
+            <div class="label">Contact</div>
+            <div class="value text-break"><a [href]="'mailto:' + member.Email">{{ member.Email }}</a></div>
+            <small class="text-gray">{{ member.Phone }}</small>
+          </div>
+          <div class="col-6 col-md-3 meta-item">
+            <div class="label">Manages</div>
+            <div class="avatar-stack">
+              @for (r of reports; track r.ID) {
+                <a [routerLink]="['/team/people', r.ID]" class="avatar" [ngClass]="ui.avatarClass(r.Name)" [title]="r.Name">{{ ui.initials(r.Name) }}</a>
+              }
+              @if (!reports.length) { <span class="value">Nobody</span> }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-team-nav></app-team-nav>
+
+    <!-- KPIs -->
+    <div class="row row-gap-3 mb-3">
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-3 p-3"><h5>{{ kpi.completed30 }}</h5><p>Tasks done in the last 30 days</p></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-1 p-3"><h5>{{ kpi.onTime }}%</h5><p>Finished on time</p></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-4 p-3"><h5>{{ kpi.cycle }} days</h5><p>Average time per task</p></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-2 kpi-neutral p-3"><h5>{{ kpi.logged }} of {{ kpi.capacity }} hrs</h5><p>Hours logged in 4 weeks ({{ loggedPct }}%)</p></div>
+      </div>
+    </div>
+
+    <!-- Charts: 1 visible, the other under Show more -->
+    <div class="card-box mb-3">
+      <div class="card-head">
+        <h5>Tasks finished each week</h5>
+        <button type="button" class="btn btn-outline btn-sm" (click)="showMoreCharts = !showMoreCharts">{{ showMoreCharts ? 'Hide extra charts' : 'Show more charts' }}</button>
+      </div>
+      <div class="card-body">
+        <apx-chart [series]="doneSeries" [chart]="doneChart" [xaxis]="doneXAxis" [yaxis]="doneYAxis" [plotOptions]="donePlot"
+          [colors]="doneColors" [grid]="grid" [dataLabels]="noLabels" [tooltip]="doneTooltip"></apx-chart>
+      </div>
+    </div>
+    @if (showMoreCharts) {
+      <div class="card-box mb-3">
+        <div class="card-head"><h5>Hours logged compared with available hours</h5></div>
+        <div class="card-body">
+          <apx-chart [series]="hoursSeries" [chart]="hoursChart" [xaxis]="hoursXAxis" [yaxis]="hoursYAxis" [stroke]="hoursStroke"
+            [colors]="hoursColors" [grid]="grid" [dataLabels]="noLabels" [legend]="legendTop" [tooltip]="hoursTooltip"></apx-chart>
+        </div>
+      </div>
+    }
+
+    <div class="row row-gap-3">
+      <!-- Current assignments -->
+      <div class="col-xl-8">
+        <div class="card-box">
+          <div class="card-head">
+            <h5>Working on now ({{ openTasks.length }})</h5>
+            <a [routerLink]="['/tasks']" class="fs-13">All tasks</a>
+          </div>
+          <div class="card-body py-1">
+            @for (t of openTasks; track t.ID) {
+              <div class="simple-row clickable" (click)="openTask(t.ID)">
+                <span class="simple-text"><b>{{ ui.stripKey(t.Title) }}</b> · {{ t.Status }}</span>
+                <span class="simple-time" [ngClass]="ui.dueClass(t)">{{ ui.dueLabel(t) }}</span>
+              </div>
+            } @empty {
+              <div class="text-center text-gray py-3 fs-13">No open tasks right now.</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-4 d-flex flex-column gap-3">
+        <!-- Capacity editor -->
+        <div class="card-box">
+          <div class="card-head">
+            <h5>Available hours</h5>
+            @if (workload) {
+              <small class="fw-600" [ngClass]="'util-' + ui.utilClass(workload.Utilization)">{{ workload.WeekHours }} of {{ workload.WeekCapacity }} hrs this week</small>
+            }
+          </div>
+          <div class="card-body">
+            <label for="capHours" class="form-label required">Hours per week</label>
+            <input type="number" id="capHours" class="form-control" min="0" max="80" step="1" [(ngModel)]="capacityHours" (ngModelChange)="capacityDirty = true">
+            <label class="form-label required mt-3">Working days</label>
+            <div class="d-flex gap-1 flex-wrap">
+              @for (d of weekOrder; track d) {
+                <span class="day-chip" [class.active]="workingDays.includes(d)" (click)="toggleDay(d)" role="checkbox" [attr.aria-checked]="workingDays.includes(d)">{{ ui.weekDayShort[d] }}</span>
+              }
+            </div>
+            @if (capacityError) { <div class="text-danger fs-13 mt-2">{{ capacityError }}</div> }
+            @else { <small class="text-gray d-block mt-2">About {{ hoursPerDay }} hrs per working day</small> }
+            <div class="d-flex gap-2 justify-content-end mt-3">
+              <button type="button" class="btn btn-success" (click)="resetCapacity()" [disabled]="!capacityDirty"><span class="icomoon icon-reset me-2"></span> Reset</button>
+              <button type="button" class="btn btn-primary" (click)="saveCapacity()" [disabled]="!capacityDirty || !!capacityError"><span class="icomoon icon-save me-2"></span> Save</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming leave -->
+        <div class="card-box">
+          <div class="card-head">
+            <h5>Upcoming time off</h5>          </div>
+          <div class="card-body py-1">
+            @for (l of upcomingLeave; track l.ID) {
+              <div class="simple-row">
+                <span class="simple-text"><b>{{ l.Type === 'WFH' ? 'Work from home' : l.Type + ' leave' }}</b> · {{ rangeLabel(l) }}</span>
+                <span class="pill" [ngClass]="ui.leaveStatusClass(l.Status)">{{ l.Status }}</span>
+              </div>
+            } @empty {
+              <div class="text-center text-gray py-3 fs-13">No time off planned.</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

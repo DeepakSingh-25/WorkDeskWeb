@@ -1,0 +1,142 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="reports">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/reports">Reports</a> / Tasks</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Tasks</h2>
+      <p class="text-gray mb-0 fs-13">How many tasks get finished, how fast, and how many are late.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <app-report-export-menu title="Completed Tasks" fileName="completed-tasks" source="Task Completion"
+        [rows]="completed" [columns]="exportColumns"></app-report-export-menu>
+    </div>
+  </div>
+  <app-reports-nav></app-reports-nav>
+  <app-report-filter-bar [projects]="base?.Projects ?? []"></app-report-filter-bar>
+
+  @if (scope) {
+    <div class="row row-gap-3 mt-1">
+      <div class="col-6 col-lg-3"><div class="dashboard-box box-3 p-3 h-100"><p>Tasks finished</p><h5>{{ kpi.Completed }}</h5><small class="text-gray">{{ kpi.Created }} new tasks came in</small></div></div>
+      <div class="col-6 col-lg-3"><div class="dashboard-box box-4 p-3 h-100"><p>Finished on time</p><h5>{{ kpi.Completed ? kpi.OnTimePct + '%' : '—' }}</h5><small class="text-gray">done by the due date</small></div></div>
+      <div class="col-6 col-lg-3"><div class="dashboard-box box-1 p-3 h-100"><p>Average time to finish</p><h5>{{ kpi.AvgCycle }} <small class="fs-6 text-gray">days</small></h5><small class="text-gray">from start to done</small></div></div>
+      <div class="col-6 col-lg-3"><div class="dashboard-box box-2 p-3 h-100"><p>Late tasks</p><h5>{{ kpi.Overdue }}</h5><small class="text-gray">still open after the due date</small></div></div>
+
+      <div class="col-xl-7">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>New vs finished each week</h5><small class="text-gray">Last 12 weeks</small></div>
+          <div class="card-body">
+            <p class="chart-note">When the blue bar is taller, the team finished more than came in that week.</p>
+            <apx-chart [series]="weeklySeries" [chart]="weeklyChart" [xaxis]="weeklyXAxis" [yaxis]="intYAxis" [plotOptions]="weeklyPlot"
+              [colors]="weeklyColors" [grid]="grid" [dataLabels]="noLabels" [legend]="legendTop"></apx-chart>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-5">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>On time vs late</h5><small class="text-gray">finished in this period</small></div>
+          <div class="card-body">
+            <p class="chart-note">Share of finished tasks that met their due date.</p>
+            @if (kpi.Completed) {
+              <apx-chart [series]="onTimeSeries" [chart]="onTimeChart" [labels]="onTimeLabels" [colors]="onTimeColors"
+                [legend]="legendBottom" [plotOptions]="donutOptions" [dataLabels]="noLabels"></apx-chart>
+            } @else { <div class="empty-note">No tasks were finished in this period.</div> }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button type="button" class="btn btn-outline btn-sm" (click)="showMoreCharts = !showMoreCharts">{{ showMoreCharts ? 'Hide extra charts' : 'Show more charts' }}</button>
+    </div>
+    @if (showMoreCharts) {
+      <div class="row row-gap-3 mt-1">
+        <div class="col-lg-6">
+          <div class="card-box h-100">
+            <div class="card-head"><h5>Where tasks are, by priority</h5></div>
+            <div class="card-body">
+              <p class="chart-note">Status of tasks worked on in this period, split by priority.</p>
+              <apx-chart [series]="stackSeries" [chart]="stackChart" [xaxis]="stackXAxis" [plotOptions]="stackPlot"
+                [colors]="stackColors" [grid]="grid" [dataLabels]="noLabels" [legend]="legendTop"></apx-chart>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-box h-100">
+            <div class="card-head"><h5>How late are late tasks?</h5><small class="text-gray">{{ kpi.Overdue }} tasks</small></div>
+            <div class="card-body">
+              <p class="chart-note">Open tasks grouped by how many days they are past the due date.</p>
+              <apx-chart [series]="agingSeries" [chart]="agingChart" [xaxis]="agingXAxis" [yaxis]="intYAxis" [plotOptions]="agingPlot"
+                [colors]="agingColors" [grid]="grid" [dataLabels]="noLabels" [legend]="noLegend"></apx-chart>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <h5 class="fw-600 mt-4 mb-2">Tasks finished in this period</h5>
+    <div class="p-0 table-certificate shadow table-responsive">
+      <table class="table rounded table-striped align-middle">
+        <thead>
+          <tr class="lightblue">
+            <th>Task <a class="ms-1 cursor-pointer" (click)="orderBy('Title')"><img [src]="sortIcon('Title')" alt="sort"></a></th>
+            <th>Done by <a class="ms-1 cursor-pointer" (click)="orderBy('AssigneeName')"><img [src]="sortIcon('AssigneeName')" alt="sort"></a></th>
+            <th>Priority <a class="ms-1 cursor-pointer" (click)="orderBy('Priority')"><img [src]="sortIcon('Priority')" alt="sort"></a></th>
+            <th>Finished <a class="ms-1 cursor-pointer" (click)="orderBy('CompletedOn')"><img [src]="sortIcon('CompletedOn')" alt="sort"></a></th>
+            <th>Took <a class="ms-1 cursor-pointer" (click)="orderBy('CycleDays')"><img [src]="sortIcon('CycleDays')" alt="sort"></a></th>
+            <th>On time?</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of pageRows; track t.ID) {
+            <tr class="content">
+              <td style="min-width: 220px; white-space: normal;" [title]="t.ProjectName">
+                @if (t.IsHistory) { <span class="text-black">{{ ui.stripKey(t.Title) }}</span> }
+                @else { <a class="link-name" routerLink="/tasks" [queryParams]="{ task: t.ID }">{{ ui.stripKey(t.Title) }}</a> }
+              </td>
+              <td>
+                @if (t.AssigneeName) {
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="avatar sm" [ngClass]="ui.avatarClass(t.AssigneeName)">{{ ui.initials(t.AssigneeName) }}</span>{{ t.AssigneeName }}
+                  </div>
+                } @else { <span class="text-gray">Nobody</span> }
+              </td>
+              <td><span class="fw-600" [ngClass]="ui.priorityClass(t.Priority)">{{ t.Priority }}</span></td>
+              <td>{{ displayDate(t.CompletedOn) }}</td>
+              <td>{{ t.CycleDays }} {{ t.CycleDays === 1 ? 'day' : 'days' }}</td>
+              <td><span class="pill" [ngClass]="t.OnTime ? 'st-completed' : 'st-delayed'">{{ t.OnTime ? 'On time' : 'Late' }}</span></td>
+            </tr>
+          }
+        </tbody>
+        <tbody>
+          @if (completed.length == 0) {
+            <tr class="content">
+              <td colspan="6" class="text-center text-black">
+                <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+                <h6>No Record Found</h6>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <p class="totRecords mb-0">Records Found : {{ completed.length }}</p>
+        <select [(ngModel)]="cardsPerPage" (change)="onRecordsPerPageChange()" class="form-select form-select-sm" style="width: auto;" aria-label="Rows per page">
+          @for (option of recordsPerPageOptions; track option) { <option [ngValue]="option">{{ option }} / page</option> }
+        </select>
+      </div>
+      <nav>
+        <ul class="pagination justify-content-center pagination-sm mb-0">
+          @if (currentPage > 1) { <li class="page-item" (click)="prevPage()"><a href="javascript:void(0)" class="page-link">Prev</a></li> }
+          @for (page of pageNumbers; track page) {
+            <li class="page-item" (click)="goToPage(page)" [class.active]="page === currentPage">
+              <a href="javascript:void(0)" class="page-link" [ngClass]="currentPage == page ? 'text-white' : ''">{{ page }}</a>
+            </li>
+          }
+          @if (currentPage < totalPages) { <li class="page-item" (click)="nextPage()"><a href="javascript:void(0)" class="page-link">Next</a></li> }
+        </ul>
+      </nav>
+    </div>
+  }
+</div>

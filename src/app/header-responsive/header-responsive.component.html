@@ -1,0 +1,103 @@
+<header class="bg-white shadow z-1 d-md-none">
+  <div class="row row-cols-2 align-items-center">
+    <div class="col-4 col-sm-6">
+      <div class="d-flex align-items-center gap-2">
+        <button class="navbar-toggler"><span class="icomoon icon-toggle"></span></button>
+        <h6 class="mb-0 fw-semibold">{{companyName}}</h6>
+      </div>
+    </div>
+    <div class="col-8 col-sm-6 profile-icon">
+      <div class="d-inline-flex align-items-center mx-2 gap-3">
+
+        <button type="button" class="theme-toggle" (click)="theme.toggle()"
+            [attr.aria-label]="theme.isDark ? 'Switch to day mode' : 'Switch to night mode'"
+            [title]="theme.isDark ? 'Day mode' : 'Night mode'">
+            @if (theme.isDark) {
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4.2" fill="currentColor"/>
+                    <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/>
+                </svg>
+            } @else {
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                    <path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8z"/>
+                </svg>
+            }
+        </button>
+        <div>
+          <div class="d-flex align-items-center cursor-pointer">
+            <span class="position-relative">
+              <img src="../../assets/images/notification.svg" class="notification"
+                data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
+                aria-controls="offcanvasRight">
+                <span
+                  style="height: 14px;width: 14px;background: #FF0000;border-radius: 50%;color: #fff;text-align: center;display: grid;place-items: center; font-size: 8px; position: absolute;top: 0;right: 0;"><strong>5</strong>
+                </span>
+              </span>
+              <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
+                aria-labelledby="offcanvasRightLabel">
+                <div class="offcanvas-header">
+                  <h2 class="fw-bold offcanvas-title" id="offcanvasRightLabel">All Notification</h2>
+                  <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
+                  aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                  @for (element of messages; track element) {
+                    <div
+                      class="d-flex align-items-center notification-msg">
+                      <img class="profile-user" src="{{element.image}}" alt>
+                      <div>
+                        <div>
+                          <p class="mb-1 ms-2 text-wrap text-dark"><strong>{{element.name}}</strong>
+                        has started the conversion</p>
+                        <div class="d-flex align-items-center ms-2">
+                          <p class="mb-0 text-gray">{{element.time}}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="dropdown ">
+          <div class="d-flex align-items-center cursor-pointer" data-bs-toggle="dropdown"
+            aria-expanded="false">
+
+            <img class="profile-user" [src]="(photoService.photo$ | async) || photoService.defaultPhoto" alt="Profile photo">
+            <div class="ms-3">
+              <p class="mb-0 text-dark fw-500">{{ authService.fullName$ | async }}</p>
+              <p class="mb-0 text-gray fs-14">Admin</p>
+
+            </div>
+          </div>
+          <div class="dropdown-menu user">
+            <div class="d-flex align-items-center pb-3">
+              <img class="profile-user" [src]="(photoService.photo$ | async) || photoService.defaultPhoto" alt="Profile photo">
+              <div class="ms-3">
+                <p class="mb-0 text-dark fw-500">{{ authService.fullName$ | async }}</p>
+                <p class="mb-0 text-gray fs-14">Admin</p>
+
+              </div>
+            </div>
+            <div class="pt-2 border-top">
+              <p class="mb-2"><a class="dropdown-item" routerLink="/user-profile" style="cursor: pointer;"><span class="icomoon icon-user1 me-2"></span>
+            Profile</a></p>
+            <p class="mb-2"><a routerLink="/changepassword" style="cursor: pointer;"
+              class="dropdown-item">
+            <fa-icon [icon]="lock" style="color: #686868;" class="me-2" /> Change Password</a>
+          </p>
+          <p class="mb-2"><a class="dropdown-item"><span class="icomoon icon-setting me-2"></span>
+        Setting</a></p>
+        <p class="mb-2"><a class="dropdown-item" routerLink="/login"><span
+        class="icomoon icon-log-out me-2"></span> Log-out</a></p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+</header>

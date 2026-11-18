@@ -1,0 +1,8 @@
+<nav class="project-tabs home-nav mt-2 mb-3" aria-label="Dashboard navigation">
+  @for (l of links; track l.path) {
+    <a [routerLink]="l.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: l.exact }">
+      {{ l.label }}
+      @if (badge(l.badge) > 0) { <span class="nav-badge" [class.red]="l.badge === 'notif'">{{ badge(l.badge) }}</span> }
+    </a>
+  }
+</nav>

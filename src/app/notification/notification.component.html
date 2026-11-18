@@ -1,0 +1,47 @@
+<div class="notification-container">
+  @for (notification of notifications; track notification; let i = $index) {
+    <div class="notification {{ notification.type }}">
+      <div class="d-flex justify-content-center" style="z-index: 10; min-width: 50px;">
+        @if (notification.type == 'success') {
+          <div><img src="../../assets/images/success.svg" alt=""></div>
+        }
+        @if (notification.type == 'error') {
+          <div><img src="../../assets/images/error.svg" alt=""></div>
+        }
+        @if (notification.type == 'delete') {
+          <div class="mt-4"><img src="../../assets/images/question-red.svg" alt=""></div>
+        }
+        @if (notification.type == 'confirm') {
+          <div><img src="../../assets/images/question.svg" alt=""></div>
+        }
+        <!-- <div class="close shadow" (click)="closeNotification(i)">
+        <div><img src="../../assets/images/close.svg" alt=""></div>
+      </div> -->
+    </div>
+    <div class="ms-4">
+      <p class=" mb-0 py-1">{{ notification.message }}</p>
+      <!-- <button *ngIf="notification.type === 'success' || notification.type === 'error'" class="close shadow"
+    (click)="closeNotification(i)">Close</button> -->
+    @if (notification.type === 'confirm') {
+      <div class="mt-2">
+        <button class="btn confirm" (click)="onConfirm(true)">Confirm</button>
+        <button class="btn cancel" (click)="onConfirm(false)">Cancel</button>
+      </div>
+    }
+    @if (notification.type === 'delete') {
+      <div class="mt-2">
+        <div class="d-flex align-items-center mb-4">
+          <input type="checkbox" id="permission" (change)="checkPermission($event)"> <label for="permission" class="text-muted ms-1 text-nowrap" style="font-size: 12px;"> I confirm that I want to delete this item.</label>
+        </div>
+        <button class="btn delete" [disabled]="!isPermission" (click)="deletePermission(true)">Delete</button>
+        <button class="btn cancel" (click)="deletePermission(false)">Cancel</button>
+      </div>
+    }
+  </div>
+  <div class="success-bedge">
+    SUCCESS
+  </div>
+</div>
+}
+
+</div>

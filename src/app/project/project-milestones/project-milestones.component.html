@@ -1,0 +1,124 @@
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <h3 class="fw-bold mb-0">Milestones <small class="text-gray fs-6">({{ milestones.length }})</small></h3>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <select class="form-select form-select-sm w-auto" [(ngModel)]="statusFilter">
+      <option value="">All Status</option>
+      @for (s of ui.milestoneStatusOptions; track s) { <option [value]="s">{{ s }}</option> }
+    </select>
+    @if (canEdit) {
+      <button type="button" class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMilestone" (click)="resetForm()">+ Add Milestone</button>
+    }
+  </div>
+</div>
+
+<div class="row row-gap-3 mb-4">
+  <div class="col-6 col-md-3"><div class="dashboard-box box-1 p-3"><h5>{{ milestones.length }}</h5><p>All milestones</p></div></div>
+  <div class="col-6 col-md-3"><div class="dashboard-box box-3 p-3"><h5>{{ count('Completed') }}</h5><p>Completed</p></div></div>
+  <div class="col-6 col-md-3"><div class="dashboard-box box-4 p-3"><h5>{{ count('In Progress') + count('Pending') }}</h5><p>Still open</p></div></div>
+  <div class="col-6 col-md-3"><div class="dashboard-box box-2 p-3"><h5>{{ count('Delayed') }}</h5><p>Late</p></div></div>
+</div>
+
+<div class="card-box">
+  <div class="card-body py-1">
+    @for (m of filteredMilestones; track m.ID) {
+      <div class="simple-row">
+        @if (m.OwnerName) {
+          <span class="avatar" [ngClass]="ui.avatarClass(m.OwnerName)" [title]="'Owner: ' + m.OwnerName">{{ ui.initials(m.OwnerName) }}</span>
+        }
+        <span class="simple-text"><b>{{ m.Title }}</b>
+          <span class="text-gray">· due {{ m.DueDate | date:'dd MMM yyyy' }} · {{ m.Progress }}% done</span>
+          @if (m.OutsideProjectDates) { <small class="d-block due-late fs-13">Outside project dates</small> }
+        </span>
+        @if (isOverdue(m)) {
+          <span class="pill st-cancelled"><span class="dot"></span>Late</span>
+        } @else {
+          <span class="pill" [ngClass]="ui.statusClass(m.Status)"><span class="dot"></span>{{ m.Status }}</span>
+        }
+        @if (canEdit) {
+          <div class="d-flex gap-1 align-items-center">
+            @if (m.Status !== 'Completed') {
+              <button class="icon-btn success" title="Mark complete" (click)="onMarkComplete(m)"><span class="icomoon icon-check"></span></button>
+            }
+            <button class="icon-btn" title="Edit" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMilestone" (click)="onEdit(m)"><span class="icomoon icon-edit"></span></button>
+            <div class="dropdown">
+              <button type="button" class="icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="More" aria-label="More actions">⋯</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><button type="button" class="dropdown-item text-danger" (click)="onDelete(m)">Delete</button></li>
+              </ul>
+            </div>
+          </div>
+        }
+      </div>
+    }
+    @if (filteredMilestones.length === 0) {
+      <div class="text-center py-4">
+        <img src="../../assets/images/no_record_found.webp" alt="" style="width: 180px;">
+        <h6>No milestones yet</h6>
+        @if (canEdit && !statusFilter) {
+          <button type="button" class="btn btn-outline btn-sm mt-2" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMilestone" (click)="resetForm()">Add the first milestone</button>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Add / Edit milestone -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMilestone" aria-labelledby="offcanvasMilestoneLabel">
+  <div class="offcanvas-header">
+    <h2 class="fw-bold offcanvas-title" id="offcanvasMilestoneLabel">{{ milestoneForm.value.ID ? 'Edit Milestone' : 'Add Milestone' }}</h2>
+    <button type="button" #closebutton class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <form class="justify-content-between d-flex flex-column h-100" [formGroup]="milestoneForm" (ngSubmit)="onSave()">
+      <div class="form-scroll pe-3">
+        <div class="mb-3">
+          <label for="msTitle" class="form-label required">Title</label>
+          <input type="text" id="msTitle" class="form-control" formControlName="txtTitle" placeholder="e.g. Beta Release" autocomplete="off" maxlength="100">
+          @if (milestoneForm.controls['txtTitle'].touched && milestoneForm.controls['txtTitle'].invalid) { <div class="text-danger fs-13">Title is Required</div> }
+        </div>
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label for="msStart" class="form-label required">Start Date</label>
+            <input type="date" id="msStart" class="form-control" formControlName="txtStartDate">
+          </div>
+          <div class="col-6 mb-3">
+            <label for="msDue" class="form-label required">Due Date</label>
+            <input type="date" id="msDue" class="form-control" formControlName="txtDueDate" [min]="milestoneForm.value.txtStartDate">
+            @if (milestoneForm.controls['txtDueDate'].touched && milestoneForm.controls['txtDueDate'].invalid) { <div class="text-danger fs-13">Due Date is Required</div> }
+          </div>
+          @if (milestoneForm.errors?.['dateRange']) { <div class="text-danger fs-13 mb-3">Due Date must be after Start Date</div> }
+        </div>
+        <div class="mb-3">
+          <label for="msStatus" class="form-label required">Status</label>
+          <select id="msStatus" class="form-select" formControlName="drpStatus">
+            @for (s of ui.milestoneStatusOptions; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+        @if (milestoneForm.value.drpStatus !== 'Completed') {
+          <div class="mb-3">
+            <label for="msProgress" class="form-label d-flex justify-content-between">Progress <span class="text-primary">{{ milestoneForm.value.txtProgress }}%</span></label>
+            <input type="range" id="msProgress" class="form-range" min="0" max="100" step="5" formControlName="txtProgress">
+          </div>
+        }
+        <button type="button" class="btn btn-link px-0 text-decoration-none fs-13 mb-2" (click)="moreOptions = !moreOptions">{{ moreOptions ? '▾ Fewer options' : '▸ More options (owner, description)' }}</button>
+        @if (moreOptions) {
+          <div class="mb-3">
+            <label for="msOwner" class="form-label">Owner</label>
+            <ng-select formControlName="drpOwner" labelForId="msOwner" placeholder="Select Owner" [dropdownPosition]="'bottom'">
+              @for (m of members; track m.ID) { <ng-option [value]="m.UserID">{{ m.Name }}</ng-option> }
+            </ng-select>
+          </div>
+          <div class="mb-3">
+            <label for="msDesc" class="form-label">Description</label>
+            <textarea id="msDesc" class="form-control" rows="3" formControlName="txtDescription" maxlength="500"></textarea>
+          </div>
+        }
+      </div>
+      <div class="border-top py-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span> Save</button>
+        <button type="button" class="btn btn-success" (click)="resetForm()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="offcanvas"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+/* .offcanvas-header {padding: 30px 30px 16px 30px;}
+.offcanvas-body {padding: 0px 30px 30px 30px;} */
+.dashboard-content .form-label { color: #000; font-weight: 500;}
+.form-select:focus{box-shadow: none; border-color: rgba(0, 0, 0, 0.3);} 
+.offcanvas-header .btn-close { background-color: #B8B8B8; border-radius: 50px; font-size: 8px; font-weight: 700;}
+#preview { width: 200px; margin-top: 10px; border-radius: 10px;}
+.image-dropzone { width: 100%; padding: 15px; height: 100%;border: 1.3870967626571655px solid rgba(0, 0, 0, 0.3);border-radius: 10px; align-items: center; display: flex; flex-direction: column; justify-content: center; color: #999; cursor: pointer;}
+.image-dropzone.dragover {border-color: #00aaff;color: #00aaff;}
+  
+
+  

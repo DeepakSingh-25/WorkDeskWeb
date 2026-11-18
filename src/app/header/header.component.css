@@ -1,0 +1,15 @@
+ .dropdown-menu { border-radius: 8px; border: 0px solid rgba(0, 0, 0, 0.15); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important; padding: 0; top: 10px !important; }
+.users:hover{background: rgba(8, 83, 137, 0.05000000074505806);}
+.border-left{border-left: 2px solid #CAD8FF;}
+.dropdown-menu p a {color: #1C1D1D !important;}
+.dropdown-menu p a:hover{background: rgba(8, 83, 137, 0.05000000074505806) !important;}
+a.dropdown-item:hover span.custom-icon { color: #0043E0 !important; }
+
+/* night mode: the light rules above are scoped to this component and outrank dark.css */
+:host-context(html[data-theme="dark"]) .dropdown-menu { background: #171D2B; border: 1px solid #2A3448; box-shadow: 0 8px 24px rgba(0, 0, 0, .5) !important; }
+:host-context(html[data-theme="dark"]) .users:hover { background: rgba(255, 255, 255, .04); }
+:host-context(html[data-theme="dark"]) .border-left { border-left-color: #2A3448; }
+:host-context(html[data-theme="dark"]) .dropdown-menu p a { color: #E2E8F5 !important; }
+:host-context(html[data-theme="dark"]) .dropdown-menu p a .custom-icon { color: #98A3BA; }
+:host-context(html[data-theme="dark"]) .dropdown-menu p a:hover { background: rgba(92, 140, 255, .1) !important; color: #5C8CFF !important; }
+:host-context(html[data-theme="dark"]) a.dropdown-item:hover span.custom-icon { color: #5C8CFF !important; }

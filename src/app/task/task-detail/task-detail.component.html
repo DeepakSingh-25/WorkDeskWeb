@@ -1,0 +1,99 @@
+@if (task) {
+  <div class="d-flex flex-column h-100" [class.page-detail]="mode === 'page'">
+    <!-- header: title + status + Mark done + ⋯ + close -->
+    <div class="drawer-head">
+      <input class="detail-title head-title" [(ngModel)]="titleDraft" (blur)="saveTitle()" (keydown.enter)="$any($event.target).blur()" maxlength="150" aria-label="Task title">
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <span class="pill" [ngClass]="ui.taskStatusClass(task.Status)">
+          <select class="inline-select" [ngModel]="task.Status" (ngModelChange)="setStatus($event)" aria-label="Status">
+            @for (s of ui.taskStatuses; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </span>
+        <button type="button" class="btn btn-sm py-1" [ngClass]="task.Status === 'Done' ? 'btn-outline' : 'btn-success'" (click)="markDone()">
+          {{ task.Status === 'Done' ? 'Reopen' : '✓ Mark done' }}
+        </button>
+        <div class="dropdown">
+          <button type="button" class="icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="More" aria-label="More actions">⋯</button>
+          <ul class="dropdown-menu dropdown-menu-end fs-13">
+            <li><a class="dropdown-item" href="javascript:void(0)" (click)="copyLink()">Copy link</a></li>
+            <li><a class="dropdown-item" href="javascript:void(0)" (click)="onEdit()">Edit</a></li>
+            @if (mode === 'drawer') {
+              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openFullPage()">Open full page</a></li>
+            }
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="javascript:void(0)" (click)="onDelete()">Delete</a></li>
+          </ul>
+        </div>
+        @if (mode === 'drawer') {
+          <button class="icon-btn close-btn" title="Close (Esc)" aria-label="Close" (click)="closed.emit()"><fa-icon [icon]="faClose" /></button>
+        }
+      </div>
+    </div>
+
+    <div class="drawer-body">
+      <div class="px-4 pt-3 pb-2">
+        @if (task.IsBlocked) {
+          <p class="fs-13 text-danger mb-3">This task is waiting on another task. See the Checklist tab.</p>
+        }
+
+        <div class="field-grid">
+          <span class="k">Assignee</span>
+          <div class="field-assignee">
+            <ng-select [items]="drpUserData" bindLabel="Name" bindValue="ID" placeholder="Unassigned" [ngModel]="task.AssigneeID"
+              (ngModelChange)="setAssignee($event)" appendTo="body" class="ng-select-sm"></ng-select>
+          </div>
+          <span class="k">Due date</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <input type="date" class="form-control form-control-sm" [ngModel]="task.DueDate" (change)="setDate('DueDate', $any($event.target).value)" aria-label="Due date">
+            <small [ngClass]="ui.dueClass(task)">{{ ui.dueLabel(task) }}</small>
+          </div>
+          <span class="k">Priority</span>
+          <div>
+            <select class="form-select form-select-sm fw-600" [ngModel]="task.Priority" (ngModelChange)="setPriority($event)" aria-label="Priority"
+              [style.color]="ui.priorityColor(task.Priority)">
+              @for (p of priorities; track p) { <option [value]="p">{{ p }}</option> }
+            </select>
+          </div>
+          <span class="k">Project</span>
+          <div><a [routerLink]="['/projects', task.ProjectID]" class="text-primary">{{ task.ProjectName }}</a></div>
+          <span class="k">Start date</span>
+          <div><input type="date" class="form-control form-control-sm" [ngModel]="task.StartDate" (change)="setDate('StartDate', $any($event.target).value)" aria-label="Start date"></div>
+          <span class="k">Time worked</span>
+          <div>{{ ui.formatMinutes(task.LoggedMinutes || 0) }}@if (task.EstimateHours) { <span class="text-gray"> of {{ ui.formatMinutes(task.EstimateHours * 60) }} planned</span> }</div>
+          <span class="k">Created by</span>
+          <div>{{ task.ReporterName }} <span class="text-gray">· {{ ui.ago(task.CreatedOn) }}</span></div>
+          @if (task.Labels.length) {
+            <span class="k">Labels</span>
+            <div>{{ task.Labels.join(', ') }}</div>
+          }
+        </div>
+
+        <div class="mt-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-600 text-black">Description</span>
+            <a href="javascript:void(0)" class="fs-13 text-primary" (click)="onEdit()">Edit</a>
+          </div>
+          <div class="desc-box">{{ task.Description || 'No description yet.' }}</div>
+        </div>
+      </div>
+
+      <!-- sections -->
+      <nav class="detail-tabs mt-3">
+        <a [class.active]="activeTab === 'subtasks'" (click)="activeTab = 'subtasks'">Checklist @if (task.SubtaskTotal) { <span class="badge-count">{{ task.SubtaskDone }}/{{ task.SubtaskTotal }}</span> }</a>
+        <a [class.active]="activeTab === 'comments'" (click)="activeTab = 'comments'">Comments @if (task.CommentCount) { <span class="badge-count">{{ task.CommentCount }}</span> }</a>      </nav>
+
+      <div class="px-4 py-4">
+        @switch (activeTab) {
+          @case ('subtasks') { <app-task-subtasks [task]="task" (changed)="onSectionChanged()" (openTask)="openOther($event)"></app-task-subtasks> }
+          @case ('comments') { <app-task-comments [task]="task" (changed)="onSectionChanged()"></app-task-comments> }        }
+      </div>
+    </div>
+  </div>
+} @else if (notFound) {
+  <div class="text-center py-5 px-3">
+    <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+    <h6>This task no longer exists.</h6>
+    @if (mode === 'drawer') { <button class="btn btn-primary mx-auto mt-3" (click)="closed.emit()">Close</button> }
+    @else { <button class="btn btn-primary mx-auto mt-3" routerLink="/tasks">Back to Tasks</button> }
+  </div>
+}

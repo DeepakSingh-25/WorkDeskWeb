@@ -1,0 +1,4 @@
+<div class="drawer-backdrop" (click)="closed.emit()"></div>
+<aside class="drawer" role="dialog" aria-modal="true" aria-label="Task details">
+  <app-task-detail [taskId]="taskId" mode="drawer" (closed)="closed.emit()" (changed)="changed.emit($event)"></app-task-detail>
+</aside>

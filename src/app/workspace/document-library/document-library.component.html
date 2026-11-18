@@ -1,0 +1,331 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="workspace">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/workspace">Workspace</a> / Documents</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div><h2 class="fw-bold mb-0">Documents</h2><p class="text-gray mb-0 fs-13">Keep your team's files in one place.</p></div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="button" class="btn btn-outline" (click)="openNewFolder()"><fa-icon [icon]="faNewFolder" class="me-2" />New Folder</button>
+      <label class="btn btn-primary mb-0" [class.disabled]="!canUpload" [title]="canUpload ? 'Upload files' : 'Open a folder to upload'">
+        <fa-icon [icon]="faUpload" class="me-2" />Upload
+        <input type="file" multiple hidden (change)="onBrowse($event)" [disabled]="!canUpload">
+      </label>
+    </div>
+  </div>
+  <app-workspace-nav></app-workspace-nav>
+
+  <div class="row row-gap-3">
+    <!-- ======= folder tree ======= -->
+    <div class="col-lg-3">
+      <div class="card-box doc-side">
+        <div class="card-body p-2">
+          <a class="tree-row" [class.active]="!currentFolderId && !special" (click)="openFolder(null)"><fa-icon [icon]="faDrive" class="tree-ico" /> All documents</a>
+          <a class="tree-row" [class.active]="special === 'starred'" (click)="openSpecial('starred')"><fa-icon [icon]="faStar" class="tree-ico star on" /> Starred</a>
+          <a class="tree-row" [class.active]="special === 'recent'" (click)="openSpecial('recent')"><fa-icon [icon]="faRecent" class="tree-ico" /> Recent</a>
+          <div class="tree-sep">Folders</div>
+          @for (r of treeRows; track r.Folder.ID) {
+            <a class="tree-row" [class.active]="currentFolderId === r.Folder.ID && !special" [style.padding-left.px]="8 + r.Depth * 16" (click)="openFolder(r.Folder.ID)">
+              @if (r.HasChildren) {
+                <button type="button" class="tree-caret" (click)="toggle(r.Folder, $event)" [attr.aria-label]="expanded.has(r.Folder.ID) ? 'Collapse' : 'Expand'">
+                  <fa-icon [icon]="expanded.has(r.Folder.ID) ? faDown : faRight" />
+                </button>
+              } @else { <span class="tree-caret"></span> }
+              <fa-icon [icon]="currentFolderId === r.Folder.ID ? faFolderOpen : faFolder" class="tree-ico folder" />
+              <span class="text-truncate flex-grow-1">{{ r.Folder.Name }}</span>
+            </a>
+          }
+        </div>
+        <div class="storage">
+          <div class="fs-13 mb-1"><span class="fw-600">{{ ui.formatBytes(usedBytes) }}</span> <span class="text-gray">of {{ ui.formatBytes(quota) }} used</span></div>
+          <div class="progress-thin"><div class="bar" [ngClass]="usedPct > 90 ? 'red' : usedPct > 70 ? 'orange' : ''" [style.width.%]="usedPct"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= files ======= -->
+    <div class="col-lg-9">
+      <div class="card-box doc-main" [class.drag-over]="dragOver" (dragover)="onDragOver($event)" (dragleave)="dragOver = false" (drop)="onDrop($event)">
+        <div class="card-head flex-wrap">
+          <div class="min-w-0">
+            <div class="doc-crumbs">
+              <a (click)="openFolder(null)">Documents</a>
+              @for (b of breadcrumbs; track b.ID) { <span>/</span><a (click)="openFolder(b.ID)">{{ b.Name }}</a> }
+              @if (special) { <span>/</span><span>{{ title }}</span> }
+            </div>
+            <h5 class="mt-1 d-flex align-items-center gap-2">{{ title }}
+              @if (currentFolder && !special) {
+                <span class="dropdown">
+                  <button class="icon-btn more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Folder actions">⋯</button>
+                  <ul class="dropdown-menu">
+                    <li><button class="dropdown-item" type="button" (click)="openRenameFolder(currentFolder)">Rename folder</button></li>
+                    <li><hr class="dropdown-divider"></li><li><button class="dropdown-item text-danger" type="button" (click)="onDeleteFolder(currentFolder)">Delete folder</button></li>
+                  </ul>
+                </span>
+              }
+            </h5>
+          </div>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            <div class="search position-relative icomoon icon-search">
+              <input type="text" [placeholder]="currentFolder ? 'Search in ' + currentFolder.Name : 'Search all files'" [(ngModel)]="search" autocomplete="off" aria-label="Search files">
+            </div>
+            <select class="form-select form-select-sm w-auto" [ngModel]="sortKey" (ngModelChange)="setSortKey($event)" aria-label="Sort by">
+              <option value="ModifiedOn-desc">Newest first</option>
+              <option value="ModifiedOn-asc">Oldest first</option>
+              <option value="Name-asc">Name A–Z</option>
+              <option value="Name-desc">Name Z–A</option>
+              <option value="FileSize-desc">Largest first</option>
+              <option value="FileSize-asc">Smallest first</option>
+            </select>
+            <div class="view-toggle">
+              <button type="button" [class.active]="layout === 'grid'" (click)="layout = 'grid'" title="Tiles"><fa-icon [icon]="faGrid" /></button>
+              <button type="button" [class.active]="layout === 'list'" (click)="layout = 'list'" title="List"><fa-icon [icon]="faList" /></button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          @if (canUpload) {
+            <label class="dropzone d-block mb-3" [class.drag-over]="dragOver">
+              <fa-icon [icon]="faUpload" class="me-2 text-primary" /> Drop files here or <span class="text-primary fw-600">choose files</span>
+              <input type="file" multiple hidden (change)="onBrowse($event)">
+            </label>
+          }
+
+          @if (subFolders.length) {
+            <div class="row row-gap-3 mb-3">
+              @for (f of subFolders; track f.ID) {
+                <div class="col-sm-6 col-xl-4">
+                  <div class="folder-card" (click)="openFolder(f.ID)" role="button" tabindex="0" (keydown.enter)="openFolder(f.ID)">
+                    <fa-icon [icon]="faFolder" class="folder-ico" />
+                    <div class="min-w-0 flex-grow-1">
+                      <div class="fw-600 text-truncate">{{ f.Name }}</div>
+                      <small class="text-gray">{{ folderItemCount(f) }} items</small>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (visibleFiles.length) {
+            @if (layout === 'grid') {
+              <div class="row row-gap-3">
+                @for (f of visibleFiles; track f.ID) {
+                  <div class="col-sm-6 col-md-4 col-xl-3">
+                    <div class="file-card doc-card" (click)="openPreview(f)" role="button" tabindex="0" (keydown.enter)="openPreview(f)">
+                      <div class="file-thumb" [ngClass]="kind(f)">
+                        @if (f.Url && isImage(f)) { <img [src]="f.Url" [alt]="f.Name"> } @else { {{ ui.fileExt(f.Name) }} }
+                        <button type="button" class="star-btn" [title]="f.Starred ? 'Unstar' : 'Star'" (click)="toggleStar(f, $event)"><fa-icon [icon]="faStar" class="star" [class.on]="f.Starred" /></button>
+                      </div>
+                      <div class="file-meta">
+                        <span class="name" [title]="f.Name">{{ f.Name }}</span>
+                        <div class="d-flex align-items-center gap-1">
+                          <small class="text-gray flex-grow-1">{{ ui.formatBytes(f.FileSize) }} · {{ ui.ago(f.ModifiedOn) }}</small>
+                          <span class="dropdown" (click)="$event.stopPropagation()">
+                            <button class="icon-btn more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More actions" [attr.aria-label]="'More actions for ' + f.Name">⋯</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li><button class="dropdown-item" type="button" (click)="openRenameFile(f, $event)">Rename</button></li>
+                              <li><button class="dropdown-item" type="button" (click)="openMove(f, $event)">Move</button></li>
+                              <li><hr class="dropdown-divider"></li><li><button class="dropdown-item text-danger" type="button" (click)="onDeleteFile(f, $event)">Delete</button></li>
+                            </ul>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="p-0 table-certificate shadow table-responsive">
+                <table class="table rounded table-striped align-middle mb-0">
+                  <thead>
+                    <tr class="lightblue">
+                      <th style="width: 36px;"></th>
+                      <th class="cursor-pointer" (click)="setSort('Name')">Name {{ sortBy === 'Name' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}</th>
+                      <th class="cursor-pointer" (click)="setSort('FileSize')">Size {{ sortBy === 'FileSize' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}</th>
+                      <th class="cursor-pointer" (click)="setSort('ModifiedOn')">Updated {{ sortBy === 'ModifiedOn' ? (sortDir === 'asc' ? '↑' : '↓') : '' }}</th>
+                      <th style="width: 50px;"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (f of visibleFiles; track f.ID) {
+                      <tr class="content row-click" (click)="openPreview(f)">
+                        <td><button type="button" class="icon-btn" (click)="toggleStar(f, $event)" [title]="f.Starred ? 'Unstar' : 'Star'"><fa-icon [icon]="faStar" class="star" [class.on]="f.Starred" /></button></td>
+                        <td style="min-width: 240px;">
+                          <div class="d-flex align-items-center gap-2">
+                            <span class="mini-thumb file-thumb" [ngClass]="kind(f)">{{ ui.fileExt(f.Name) }}</span>
+                            <div class="link-name text-truncate min-w-0" [title]="folderPath(f.FolderID)">{{ f.Name }}</div>
+                          </div>
+                        </td>
+                        <td class="text-nowrap">{{ ui.formatBytes(f.FileSize) }}</td>
+                        <td class="text-nowrap" [title]="f.ModifiedOn | date:'dd MMM yyyy, HH:mm'">{{ ui.ago(f.ModifiedOn) }}</td>
+                        <td>
+                          <div class="dropdown" (click)="$event.stopPropagation()">
+                            <button class="icon-btn more-btn" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="More actions" [attr.aria-label]="'More actions for ' + f.Name">⋯</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li><button class="dropdown-item" type="button" (click)="openRenameFile(f, $event)">Rename</button></li>
+                              <li><button class="dropdown-item" type="button" (click)="openMove(f, $event)">Move</button></li>
+                              <li><hr class="dropdown-divider"></li><li><button class="dropdown-item text-danger" type="button" (click)="onDeleteFile(f, $event)">Delete</button></li>
+                            </ul>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          } @else if (!subFolders.length) {
+            <div class="text-center py-4">
+              <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+              <h6>{{ search ? 'No files match “' + search + '”.' : special === 'starred' ? 'No starred files yet.' : 'This folder is empty.' }}</h6>
+              @if (canUpload && !search) {
+                <label class="btn btn-outline btn-sm mb-0"><fa-icon [icon]="faUpload" class="me-2" />Upload a file<input type="file" multiple hidden (change)="onBrowse($event)"></label>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= name dialog ======= -->
+  @if (nameDialog) {
+    <div class="drawer-backdrop" (click)="nameDialog = null"></div>
+    <div class="ws-modal" role="dialog" aria-modal="true" [attr.aria-label]="nameDialog.Title">
+      <h5 class="fw-bold mb-3">{{ nameDialog.Title }}</h5>
+      <label for="dlgName" class="form-label required">Name</label>
+      <input id="dlgName" type="text" class="form-control" [formControl]="txtName" maxlength="120" (keydown.enter)="saveName()" (keydown.escape)="nameDialog = null">
+      @if (txtName.touched && txtName.invalid) { <div class="text-danger fs-13">Name is Required</div> }
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-danger" (click)="nameDialog = null"><span class="icomoon icon-cancel me-2"></span>Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="saveName()"><span class="icomoon icon-save me-2"></span>Save</button>
+      </div>
+    </div>
+  }
+
+  <!-- ======= move drawer ======= -->
+  @if (moveFile) {
+    <div class="drawer-backdrop" (click)="moveFile = null"></div>
+    <aside class="drawer narrow" role="dialog" aria-modal="true" aria-label="Move file">
+      <div class="drawer-head">
+        <div class="min-w-0"><h5 class="fw-bold mb-0">Move file</h5><small class="text-gray text-truncate d-block">{{ moveFile.Name }}</small></div>
+        <button class="icon-btn" title="Close" (click)="moveFile = null" style="color:#555"><fa-icon [icon]="faClose" /></button>
+      </div>
+      <div class="drawer-body p-3">
+        <p class="fs-13 text-gray">Currently in <b>{{ folderPath(moveFile.FolderID) }}</b>. Choose the destination folder:</p>
+        @for (r of allFolderRows; track r.Folder.ID) {
+          <label class="pick-row" [class.active]="moveTarget === r.Folder.ID" [style.padding-left.px]="10 + r.Depth * 18">
+            <input type="radio" name="moveTarget" [value]="r.Folder.ID" [(ngModel)]="moveTarget" class="form-check-input m-0">
+            <fa-icon [icon]="faFolder" class="folder" /> {{ r.Folder.Name }}
+            @if (r.Folder.ID === moveFile.FolderID) { <small class="text-gray ms-auto">current</small> }
+          </label>
+        }
+      </div>
+      <div class="sticky-actions d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-danger" (click)="moveFile = null"><span class="icomoon icon-cancel me-2"></span>Cancel</button>
+        <button type="button" class="btn btn-primary" [disabled]="!moveTarget || moveTarget === moveFile.FolderID" (click)="confirmMove()"><fa-icon [icon]="faMove" class="me-2" />Move here</button>
+      </div>
+    </aside>
+  }
+
+  <!-- ======= preview drawer ======= -->
+  @if (preview) {
+    <div class="drawer-backdrop" (click)="closePreview()"></div>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-label="File preview" (keydown.escape)="closePreview()">
+      <div class="drawer-head">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <span class="mini-thumb file-thumb" [ngClass]="kind(preview)">{{ ui.fileExt(preview.Name) }}</span>
+          <div class="min-w-0">
+            <h5 class="fw-bold mb-0 text-truncate">{{ preview.Name }}</h5>
+            <small class="text-gray">{{ folderPath(preview.FolderID) }}</small>
+          </div>
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          @if (preview.Url) { <a class="icon-btn" title="Download" [href]="preview.Url" [download]="preview.Name"><span class="icomoon icon-download"></span></a> }
+          <button class="icon-btn" [title]="preview.Starred ? 'Unstar' : 'Star'" (click)="toggleStar(preview)"><fa-icon [icon]="faStar" class="star" [class.on]="preview.Starred" /></button>
+          <div class="dropdown">
+            <button class="icon-btn more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More actions">⋯</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><button class="dropdown-item" type="button" (click)="openRenameFile(preview)">Rename</button></li>
+              <li><button class="dropdown-item" type="button" (click)="openMove(preview)">Move</button></li>
+              <li><hr class="dropdown-divider"></li><li><button class="dropdown-item text-danger" type="button" (click)="onDeleteFile(preview)">Delete</button></li>
+            </ul>
+          </div>
+          <button class="icon-btn" title="Close (Esc)" (click)="closePreview()" style="color:#555"><fa-icon [icon]="faClose" /></button>
+        </div>
+      </div>
+      <div class="drawer-body">
+        <nav class="detail-tabs">
+          <a [class.active]="previewTab === 'preview'" (click)="previewTab = 'preview'">Preview</a>
+          <a [class.active]="previewTab === 'details'" (click)="previewTab = 'details'">Details</a>
+          <a [class.active]="previewTab === 'versions'" (click)="previewTab = 'versions'">History <span class="badge-count">{{ preview.Versions.length }}</span></a>
+        </nav>
+        <div class="p-4">
+          @switch (previewTab) {
+            @case ('preview') {
+              @if (preview.Url && isImage(preview)) {
+                <div class="preview-box"><img [src]="preview.Url" [alt]="preview.Name"></div>
+              } @else if (previewUrl) {
+                <iframe class="preview-frame" [src]="previewUrl" [title]="preview.Name"></iframe>
+              } @else {
+                <div class="preview-empty">
+                  <div class="file-thumb big" [ngClass]="kind(preview)">{{ ui.fileExt(preview.Name) }}</div>
+                  <h6 class="mt-3 mb-1">{{ preview.Url ? 'Preview not available for this file type' : 'Preview not available for demo files' }}</h6>
+                  <p class="text-gray fs-13 mb-0">{{ preview.Url ? 'Download the file to open it.' : 'Upload an image or PDF to see a live preview. Metadata is shown below.' }}</p>
+                </div>
+              }
+              <p class="text-gray fs-13 mt-3 mb-0">{{ ui.formatBytes(preview.FileSize) }} · updated {{ ui.ago(preview.ModifiedOn) }} by {{ preview.OwnerName }}</p>
+            }
+            @case ('details') {
+              <div class="field-grid">
+                <span class="k">Owner</span>
+                <span class="d-flex align-items-center gap-2"><span class="avatar" [ngClass]="ui.avatarClass(preview.OwnerName)" style="width:26px;height:26px;font-size:10px">{{ ui.initials(preview.OwnerName) }}</span>{{ preview.OwnerName }}</span>
+                <span class="k">Size</span><span>{{ ui.formatBytes(preview.FileSize) }}</span>
+                <span class="k">Created</span><span>{{ preview.CreatedOn | date:'dd MMM yyyy, HH:mm' }}</span>
+                <span class="k">Updated</span><span>{{ preview.ModifiedOn | date:'dd MMM yyyy, HH:mm' }}</span>
+                <span class="k">File type</span><span class="text-break">{{ preview.FileType }}</span>
+                <span class="k">Folder</span><span>{{ folderPath(preview.FolderID) }}</span>
+                <span class="k">Project</span>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                  <select class="form-select form-select-sm" [ngModel]="preview.ProjectID" (ngModelChange)="setProject($event)" aria-label="Linked project">
+                    <option [ngValue]="null">Not linked</option>
+                    @for (p of projects; track p.ID) { <option [ngValue]="p.ID">{{ p.Name }}</option> }
+                  </select>
+                  @if (preview.ProjectID) { <a [routerLink]="['/projects', preview.ProjectID]" class="fs-13">Open project →</a> }
+                </div>
+                <span class="k">Tags</span>
+                <div>
+                  <div class="d-flex flex-wrap gap-1 mb-2">
+                    @for (t of preview.Tags; track t) { <span class="label-chip">{{ t }} <a class="ms-1 cursor-pointer" (click)="removeTag(t)" [attr.aria-label]="'Remove ' + t">×</a></span> }
+                    @if (!preview.Tags.length) { <small class="text-gray">No tags</small> }
+                  </div>
+                  <div class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm" [(ngModel)]="newTag" (keydown.enter)="addTag()" placeholder="Add tag" maxlength="30" aria-label="New tag" style="max-width: 180px;">
+                    <button type="button" class="btn btn-sm btn-outline py-1" (click)="addTag()">Add</button>
+                  </div>
+                </div>
+              </div>
+              @if (preview.Description) { <div class="desc-box mt-4">{{ preview.Description }}</div> }
+            }
+            @case ('versions') {
+              <div class="dropzone mb-3 text-start">
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                  <input type="text" class="form-control form-control-sm flex-grow-1" [(ngModel)]="versionNote" placeholder="What changed? (optional)" maxlength="100" aria-label="Version note" style="max-width: 320px;">
+                  <label class="btn btn-sm btn-primary mb-0"><fa-icon [icon]="faUpload" class="me-1" />Upload a newer copy<input type="file" hidden (change)="onVersionFile($event)"></label>
+                </div>
+              </div>
+              <div>
+                @for (v of preview.Versions; track v.Version; let first = $first) {
+                  <div class="simple-row" [title]="(v.UploadedOn | date:'dd MMM yyyy, HH:mm') + ' · ' + ui.formatBytes(v.FileSize)">
+                    <span class="avatar" [ngClass]="ui.avatarClass(v.UploadedBy)">{{ ui.initials(v.UploadedBy) }}</span>
+                    <span class="simple-text"><b>{{ v.UploadedBy }}</b> {{ first ? 'uploaded the current version' : 'uploaded an older version' }}@if (v.Note) { <span class="text-gray"> — {{ v.Note }}</span> }</span>
+                    <span class="simple-time">{{ ui.ago(v.UploadedOn) }}</span>
+                    @if (v.Url) { <a class="icon-btn" title="Download this version" [href]="v.Url" [download]="preview.Name"><span class="icomoon icon-download"></span></a> }
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </aside>
+  }
+</div>

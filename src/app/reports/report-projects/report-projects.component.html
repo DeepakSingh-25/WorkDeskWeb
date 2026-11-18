@@ -1,0 +1,115 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="reports">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/reports">Reports</a> / Projects</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Projects</h2>
+      <p class="text-gray mb-0 fs-13">Is each project on schedule and within budget?</p>
+    </div>
+    <div class="d-flex gap-2">
+      <app-report-export-menu title="Project Performance" fileName="project-performance" source="Project Performance"
+        [rows]="rows" [columns]="exportColumns"></app-report-export-menu>
+    </div>
+  </div>
+  <app-reports-nav></app-reports-nav>
+  <app-report-filter-bar [projects]="base?.Projects ?? []" [showTeam]="false"></app-report-filter-bar>
+
+  @if (scope) {
+    <div class="row row-gap-3 mt-1">
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-1 p-3 h-100"><p>Total budget</p><h5>{{ money(totals.Budget) }}</h5>
+          <small class="text-gray">{{ money(totals.Spent) }} spent so far</small></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-2 p-3 h-100"><p>Behind schedule</p><h5>{{ totals.Behind }}</h5><small class="text-gray">projects behind plan</small></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-3 p-3 h-100"><p>Open tasks</p><h5>{{ totals.Open }}</h5><small class="text-gray">not finished yet</small></div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="dashboard-box box-4 p-3 h-100"><p>Late tasks</p><h5 [class.text-danger]="totals.Overdue > 0">{{ totals.Overdue }}</h5><small class="text-gray">open after the due date</small></div>
+      </div>
+
+      <div class="col-xl-6">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>Budget vs spent</h5></div>
+          <div class="card-body">
+            <p class="chart-note">Orange taller than blue means the project has spent more than planned.</p>
+            <apx-chart [series]="budgetSeries" [chart]="budgetChart" [xaxis]="budgetXAxis" [yaxis]="budgetYAxis" [plotOptions]="budgetPlot"
+              [colors]="budgetColors" [grid]="grid" [dataLabels]="noLabels" [legend]="legendTop" [tooltip]="budgetTooltip"></apx-chart>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-6">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>Work done vs plan</h5><small class="text-gray">as of today</small></div>
+          <div class="card-body">
+            <p class="chart-note">A green bar shorter than the grey one means the project is behind.</p>
+            <apx-chart [series]="progSeries" [chart]="progChart" [xaxis]="progXAxis" [plotOptions]="progPlot"
+              [colors]="progColors" [grid]="grid" [dataLabels]="noLabels" [legend]="legendTop" [tooltip]="pctTooltip"></apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h5 class="fw-600 mt-4 mb-2">All projects <small class="text-gray fs-13 fw-normal">— click a row to see its milestones</small></h5>
+    <div class="p-0 table-certificate shadow table-responsive">
+      <table class="table rounded table-striped align-middle report-table">
+        <thead>
+          <tr class="lightblue">
+            <th>Project <a class="ms-1 cursor-pointer" (click)="orderBy('Name')"><img [src]="sortIcon('Name')" alt="sort"></a></th>
+            <th>Work done <a class="ms-1 cursor-pointer" (click)="orderBy('Progress')"><img [src]="sortIcon('Progress')" alt="sort"></a></th>
+            <th>Schedule <a class="ms-1 cursor-pointer" (click)="orderBy('ScheduleVariance')"><img [src]="sortIcon('ScheduleVariance')" alt="sort"></a></th>
+            <th>Budget used <a class="ms-1 cursor-pointer" (click)="orderBy('Spent')"><img [src]="sortIcon('Spent')" alt="sort"></a></th>
+            <th class="text-center">Late tasks <a class="ms-1 cursor-pointer" (click)="orderBy('OverdueTasks')"><img [src]="sortIcon('OverdueTasks')" alt="sort"></a></th>
+            <th>Health <a class="ms-1 cursor-pointer" (click)="orderBy('Health')"><img [src]="sortIcon('Health')" alt="sort"></a></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows; track r.ID) {
+            <tr class="content row-click" [class.expanded]="expandedId === r.ID" (click)="toggle(r.ID)">
+              <td style="min-width: 200px;">
+                <fa-icon [icon]="expandedId === r.ID ? faDown : faRight" class="text-gray small me-2" />
+                <a [routerLink]="['/projects', r.ID]" class="link-name fw-600" (click)="$event.stopPropagation()">{{ r.Name }}</a>
+              </td>
+              <td style="min-width: 120px;">
+                <small class="fw-600">{{ r.Progress }}%</small> <small class="text-gray">· plan {{ r.Planned }}%</small>
+                <div class="progress-thin mt-1"><div class="bar" [ngClass]="ui.progressClass(r.Progress, r.Health)" [style.width.%]="r.Progress"></div></div>
+              </td>
+              <td><span class="var-chip" [ngClass]="varianceClass(r.ScheduleVariance)">{{ scheduleText(r.ScheduleVariance) }}</span></td>
+              <td>{{ money(r.Spent) }} <small class="text-gray">of {{ money(r.Budget) }}</small></td>
+              <td class="text-center"><span [class.text-danger]="r.OverdueTasks > 0" class="fw-600">{{ r.OverdueTasks }}</span> <small class="text-gray">of {{ r.OpenTasks }}</small></td>
+              <td><span class="pill" [ngClass]="ui.healthClass(r.Health)">{{ r.Health }}</span></td>
+            </tr>
+            @if (expandedId === r.ID) {
+              <tr class="ms-detail-row">
+                <td colspan="6">
+                  <div class="ms-detail">
+                    <h6 class="mb-1 fw-600">Milestones</h6>
+                    @for (m of r.Milestones; track m.ID) {
+                      <div class="simple-row">
+                        <div class="simple-text"><b>{{ m.Title }}</b> <span class="text-gray">· due {{ displayDate(m.DueDate) }} · {{ m.Progress }}% done</span></div>
+                        <span class="pill" [ngClass]="ui.statusClass(m.Status)">{{ m.Status }}</span>
+                      </div>
+                    } @empty {
+                      <div class="empty-note">This project has no milestones.</div>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+        <tbody>
+          @if (rows.length == 0) {
+            <tr class="content">
+              <td colspan="6" class="text-center text-black">
+                <img src="../../assets/images/no_record_found.webp" alt="" style="width: 200px;">
+                <h6>No Record Found</h6>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

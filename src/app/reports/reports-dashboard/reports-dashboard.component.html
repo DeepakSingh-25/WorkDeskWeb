@@ -1,0 +1,98 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="reports">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/reports">Reports</a> / Overview</div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-0">Reports</h2>
+      <p class="text-gray mb-0 fs-13">A quick look at how work is going across your projects.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <app-report-export-menu title="Contributors" fileName="contributors" source="Reports Dashboard"
+        [rows]="contributors" [columns]="exportColumns"></app-report-export-menu>
+    </div>
+  </div>
+  <app-reports-nav></app-reports-nav>
+  <app-report-filter-bar [projects]="base?.Projects ?? []"></app-report-filter-bar>
+
+  @if (scope) {
+    <div class="row row-gap-3 mt-1">
+      @for (k of kpis; track k.label) {
+        <div class="col-6 col-lg-3">
+          <div class="dashboard-box kpi-tile p-3 h-100" [ngClass]="k.box">
+            <p class="mb-1">{{ k.label }}</p>
+            <h5>{{ k.value }}</h5>
+            <small class="text-gray">{{ k.sub }}</small>
+          </div>
+        </div>
+      }
+
+      <div class="col-xl-8">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>New vs finished tasks</h5><small class="text-gray">Last 12 weeks</small></div>
+          <div class="card-body">
+            <p class="chart-note">If the blue line stays above the grey one, the team is finishing more than it receives.</p>
+            <apx-chart [series]="trendSeries" [chart]="trendChart" [xaxis]="trendXAxis" [yaxis]="trendYAxis" [stroke]="trendStroke"
+              [colors]="trendColors" [grid]="grid" [dataLabels]="noLabels" [legend]="legendTop"></apx-chart>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-4">
+        <div class="card-box h-100">
+          <div class="card-head"><h5>Project health</h5><small class="text-gray">{{ scope.Projects.length }} projects</small></div>
+          <div class="card-body">
+            <p class="chart-note">How many projects are on track, at risk or off track.</p>
+            <apx-chart [series]="healthSeries" [chart]="healthChart" [labels]="healthLabels" [colors]="healthColors"
+              [legend]="legendBottom" [plotOptions]="donutOptions" [dataLabels]="noLabels"></apx-chart>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button type="button" class="btn btn-outline btn-sm" (click)="showMoreCharts = !showMoreCharts">{{ showMoreCharts ? 'Hide extra charts' : 'Show more charts' }}</button>
+    </div>
+    @if (showMoreCharts) {
+      <div class="card-box mt-3">
+        <div class="card-head"><h5>Hours by project</h5><small class="text-gray">{{ rangeLabel }}</small></div>
+        <div class="card-body">
+          <p class="chart-note">Where the team spent its logged time.</p>
+          @if (hasHours) {
+            <apx-chart [series]="hoursSeries" [chart]="hoursChart" [xaxis]="hoursXAxis" [plotOptions]="hoursPlot" [colors]="hoursColors"
+              [legend]="noLegend" [grid]="grid" [dataLabels]="noLabels" [tooltip]="hoursTooltip" [fill]="hoursFill"></apx-chart>
+          } @else {
+            <div class="empty-note">No time was logged in this range.</div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+      <h5 class="fw-600 mb-0">Most active people</h5>    </div>
+    <div class="p-0 table-certificate shadow table-responsive">
+      <table class="table rounded table-striped align-middle">
+        <thead>
+          <tr class="lightblue"><th>Person</th><th>Team</th><th class="text-end">Hours logged</th><th class="text-end">Tasks finished</th></tr>
+        </thead>
+        <tbody>
+          @for (c of topContributors; track c.UserID) {
+            <tr class="content">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="avatar" [ngClass]="ui.avatarClass(c.Name)">{{ ui.initials(c.Name) }}</span>
+                  <span class="text-black fw-600 text-nowrap">{{ c.Name }}</span>
+                </div>
+              </td>
+              <td>{{ c.TeamName }}</td>
+              <td class="text-end">{{ c.Hours }}</td>
+              <td class="text-end">{{ c.Completed }}</td>
+            </tr>
+          }
+        </tbody>
+        <tbody>
+          @if (topContributors.length === 0) {
+            <tr class="content"><td colspan="4" class="text-center text-gray py-4">No activity recorded in this range.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

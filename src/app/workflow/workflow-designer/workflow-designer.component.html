@@ -1,0 +1,355 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60 pm-page" id="workflow">
+  <div class="breadcrumb-lite mb-1"><a routerLink="/workflows">Workflow &amp; Approval</a> / Designer</div>
+
+  @if (wf) {
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button type="button" class="icon-btn" title="Back to workflows" (click)="back()"><fa-icon [icon]="faBack" /></button>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h2 class="fw-bold mb-0">{{ wf.Name || 'Untitled workflow' }}</h2>
+            <span class="pill" [ngClass]="ui.wfStateClass(wf.Status)">{{ isNew ? 'New' : wf.Status }}</span>
+            @if (dirty) {
+              <span class="save-state unsaved">Not saved yet</span>
+            } @else if (!isNew) {
+              <span class="save-state saved">Saved</span>
+            }
+          </div>
+          <p class="text-gray mb-0 fs-13">
+            Used for {{ wf.AppliesTo | lowercase }}
+            @if (!isNew) { · updated {{ ui.ago(wf.UpdatedOn) | lowercase }} by {{ ui.userName(wf.UpdatedByID) }} }
+          </p>
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <button type="button" class="btn btn-outline" (click)="validate()">
+          Check for problems
+          @if (validated && issues.length) { <span class="badge rounded-pill ms-1" [ngClass]="errorCount ? 'bg-danger' : 'bg-warning text-dark'">{{ issues.length }}</span> }
+        </button>
+        <button type="button" class="btn btn-outline" (click)="saveDraft()"><fa-icon [icon]="faSave" class="me-2" />Save draft</button>
+        <button type="button" class="btn btn-primary" (click)="publish()"><fa-icon [icon]="faPublish" class="me-2" />Publish</button>
+      </div>
+    </div>
+
+    <app-workflow-nav></app-workflow-nav>
+
+    <div class="wf-designer">
+      <!-- ============ palette ============ -->
+      <aside class="wf-palette">
+        <div class="pal-title">Add a block</div>
+        @for (p of palette; track p.Type) {
+          <div class="pal-item" draggable="true" [ngClass]="'t-' + p.Type.toLowerCase()"
+               (dragstart)="onPaletteDragStart(p.Type, $event)" (dragend)="onPaletteDragEnd()" (click)="addFromPalette(p.Type)"
+               [title]="p.Hint">
+            <span class="n-icon sm"><fa-icon [icon]="ui.nodeIcon(p.Type)" /></span>
+            <div class="fw-600 fs-13 text-black">{{ p.Label }}</div>
+          </div>
+        }
+        <p class="pal-help mb-0">Click or drag a block onto the canvas. To connect two blocks, click the dot on the right of one, then click the other.</p>
+      </aside>
+
+      <!-- ============ canvas ============ -->
+      <section class="wf-canvas-card">
+        <div class="wf-toolbar">
+          <div class="d-flex align-items-center gap-1">
+            <button type="button" class="icon-btn" title="Zoom out" (click)="zoomBy(-0.1)"><fa-icon [icon]="faZoomOut" /></button>
+            <span class="zoom-val">{{ zoom * 100 | number:'1.0-0' }}%</span>
+            <button type="button" class="icon-btn" title="Zoom in" (click)="zoomBy(0.1)"><fa-icon [icon]="faZoomIn" /></button>
+            <button type="button" class="icon-btn" title="Fit to screen" (click)="fit()"><fa-icon [icon]="faFit" /></button>
+          </div>
+          @if (connectFrom) {
+            <div class="connect-hint">
+              Now click the block that comes after <b>{{ nodeName(connectFrom) }}</b>
+              <button type="button" class="btn btn-sm btn-link p-0 ms-2" (click)="connectFrom = null">Cancel</button>
+            </div>
+          } @else {
+            <small class="text-gray d-none d-md-inline">Drag blocks to move them. Press Delete to remove the selected one.</small>
+          }
+          <div class="d-flex align-items-center gap-1">
+            @if (selected) {
+              <button type="button" class="icon-btn danger" title="Delete selection" (click)="deleteSelected()"><fa-icon [icon]="faTrash" /></button>
+            }
+          </div>
+        </div>
+
+        <div class="wf-canvas-wrap" #wrap>
+          <div class="wf-stage-size" [style.width.px]="W * zoom" [style.height.px]="H * zoom">
+            <div class="wf-stage" #stage [style.width.px]="W" [style.height.px]="H" [style.transform]="'scale(' + zoom + ')'"
+                 [class.connecting]="!!connectFrom"
+                 (mousedown)="onCanvasMouseDown($event)" (dragover)="onCanvasDragOver($event)" (drop)="onCanvasDrop($event)">
+
+              <svg class="wf-svg" [attr.width]="W" [attr.height]="H" [attr.viewBox]="'0 0 ' + W + ' ' + H">
+                <defs>
+                  <marker id="wfArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#8A9BC4"></path>
+                  </marker>
+                  <marker id="wfArrowSel" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#0043E0"></path>
+                  </marker>
+                  <marker id="wfArrowYes" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#029848"></path>
+                  </marker>
+                  <marker id="wfArrowNo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#E0401C"></path>
+                  </marker>
+                </defs>
+                @for (e of wf.Edges; track e.ID) {
+                  <path class="edge-hit" [attr.d]="edgePath(e)" (mousedown)="selectEdge(e, $event)"></path>
+                  <path class="edge" [attr.d]="edgePath(e)"
+                        [class.sel]="isSel('edge', e.ID)" [class.yes]="e.Branch === 'Yes'" [class.no]="e.Branch === 'No'"
+                        [attr.marker-end]="isSel('edge', e.ID) ? 'url(#wfArrowSel)' : e.Branch === 'Yes' ? 'url(#wfArrowYes)' : e.Branch === 'No' ? 'url(#wfArrowNo)' : 'url(#wfArrow)'"></path>
+                }
+                @if (connectFrom) {
+                  <path class="edge temp" [attr.d]="tempPath" marker-end="url(#wfArrowSel)"></path>
+                }
+              </svg>
+
+              @for (e of wf.Edges; track e.ID) {
+                @if (e.Label) {
+                  <div class="edge-label" [style.left.px]="edgeMid(e).x" [style.top.px]="edgeMid(e).y"
+                       [class.sel]="isSel('edge', e.ID)" [class.yes]="e.Branch === 'Yes'" [class.no]="e.Branch === 'No'"
+                       (mousedown)="selectEdge(e, $event)">{{ e.Label }}</div>
+                }
+              }
+
+              @for (n of wf.Nodes; track n.ID) {
+                <div class="wf-node" [ngClass]="'t-' + n.Type.toLowerCase()"
+                     [class.sel]="isSel('node', n.ID)" [class.has-error]="hasIssue(n) === 'error'" [class.has-warning]="hasIssue(n) === 'warning'"
+                     [class.target]="!!connectFrom && connectFrom !== n.ID && n.Type !== 'Start'"
+                     [style.left.px]="n.X" [style.top.px]="n.Y" [style.width.px]="size(n).w" [style.height.px]="size(n).h"
+                     (mousedown)="onNodeMouseDown(n, $event)" (mouseup)="onNodeMouseUp(n, $event)">
+                  @if (n.Type !== 'Start') { <span class="port in" title="Incoming"></span> }
+                  <span class="n-icon"><fa-icon [icon]="ui.nodeIcon(n.Type)" /></span>
+                  <div class="n-body">
+                    @if (n.Type !== 'Start' && n.Type !== 'End') { <div class="n-type">{{ typeLabel(n.Type) }}</div> }
+                    <div class="n-name" [title]="n.Name">{{ n.Name }}</div>
+                    @if (n.Type !== 'Start' && n.Type !== 'End') { <div class="n-sub" [title]="summary(n)">{{ summary(n) }}</div> }
+                  </div>
+                  @if (n.Type === 'Step' && statusDef(n.Name); as sd) { <span class="n-color" [style.background]="sd.Color"></span> }
+                  @if (n.Type !== 'End') {
+                    <span class="port out" [class.active]="connectFrom === n.ID" title="Drag or click to connect" (mousedown)="onOutPortDown(n, $event)"></span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (showIssues && validated) {
+          <div class="issues-panel">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0 fw-600">
+                @if (!issues.length) { <span class="text-success"><fa-icon [icon]="faValid" /> Everything looks good. You can publish.</span> }
+                @else if (errorCount) { <span class="text-danger">{{ errorCount }} {{ errorCount === 1 ? 'thing needs' : 'things need' }} fixing before you can publish</span> }
+                @else { <span class="text-warning-dark">You can publish, but please check {{ warningCount === 1 ? 'this' : 'these' }}</span> }
+              </h6>
+              <button type="button" class="icon-btn" title="Close" (click)="showIssues = false"><fa-icon [icon]="faClose" /></button>
+            </div>
+            @for (i of issues; track $index) {
+              <div class="issue" [ngClass]="i.Level" [class.clickable]="!!i.NodeID" (click)="focusIssue(i)">
+                <fa-icon [icon]="i.Level === 'error' ? faError : faWarn" />
+                <span>{{ i.Message }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- ============ properties ============ -->
+      <aside class="wf-props">
+        @if (selNode; as n) {
+          <div class="props-head">
+            <span class="n-icon" [ngClass]="'t-' + n.Type.toLowerCase()"><fa-icon [icon]="ui.nodeIcon(n.Type)" /></span>
+            <div class="flex-grow-1 min-w-0">
+              <div class="fw-600 text-black">{{ typeLabel(n.Type) }}</div>
+              <small class="text-gray">{{ typeHint(n.Type) }}</small>
+            </div>
+            <button type="button" class="icon-btn" title="Close" (click)="selected = null"><fa-icon [icon]="faClose" /></button>
+          </div>
+          <div class="props-body">
+            <label class="form-label required">Name</label>
+            @if (n.Type === 'Step') {
+              <input class="form-control form-control-sm" [(ngModel)]="n.Name" (ngModelChange)="onStepNameChange(n)" list="wfStatusNames" placeholder="e.g. In Review">
+              <datalist id="wfStatusNames">
+                @for (s of statusLib; track s.ID) { <option [value]="s.Name"></option> }
+              </datalist>
+              @if (!statusDef(n.Name)) {
+                <small class="text-warning-dark d-block mt-1">This status does not exist yet — <a routerLink="/workflows/statuses">add it to your statuses</a>.</small>
+              }
+            } @else {
+              <input class="form-control form-control-sm" [(ngModel)]="n.Name" (ngModelChange)="markDirty()">
+            }
+            @if (!n.Name.trim()) { <div class="text-danger fs-13">Name is Required</div> }
+
+            @switch (n.Type) {
+              @case ('Step') {
+                <label class="form-label mt-3">Stage</label>
+                <div class="seg">
+                  @for (c of ['To Do', 'In Progress', 'Done']; track c) {
+                    <button type="button" [class.active]="n.Category === c" (click)="n.Category = $any(c); markDirty()">{{ c }}</button>
+                  }
+                </div>
+                <label class="form-label mt-3">Time limit in this status (hours)</label>
+                <input type="number" min="0" class="form-control form-control-sm" [(ngModel)]="n.SlaHours" (ngModelChange)="markDirty()" placeholder="No limit">
+              }
+              @case ('Approval') {
+                <label class="form-label mt-3">Who approves?</label>
+                <div class="seg">
+                  @for (t of ['User', 'Role', 'Manager']; track t) {
+                    <button type="button" [class.active]="n.ApproverType === t" (click)="n.ApproverType = $any(t); n.ApproverID = null; markDirty()">{{ t === 'User' ? 'A person' : t === 'Role' ? 'A role' : 'Their manager' }}</button>
+                  }
+                </div>
+                @if (n.ApproverType === 'User') {
+                  <ng-select class="mt-2" [items]="ui.users" bindLabel="Name" bindValue="ID" [(ngModel)]="n.ApproverID" (ngModelChange)="markDirty()" placeholder="Select person" appendTo="body"></ng-select>
+                } @else if (n.ApproverType === 'Role') {
+                  <select class="form-select form-select-sm mt-2" [(ngModel)]="n.ApproverID" (ngModelChange)="markDirty()">
+                    <option [ngValue]="null">Select role</option>
+                    @for (r of ui.roles; track r.ID) { <option [ngValue]="r.ID">{{ r.Name }}</option> }
+                  </select>
+                }
+                @if (n.ApproverType !== 'Manager' && !n.ApproverID) { <div class="text-danger fs-13">Approver is Required</div> }
+                <label class="form-label mt-3">Time to decide (hours)</label>
+                <input type="number" min="0" class="form-control form-control-sm" [(ngModel)]="n.SlaHours" (ngModelChange)="markDirty()">
+                @if (n.ApproverType === 'Role') {
+                  <label class="form-label mt-3">If more than one person can approve</label>
+                  <div class="seg">
+                    <button type="button" [class.active]="n.ApprovalRule === 'Any'" (click)="n.ApprovalRule = 'Any'; markDirty()">One is enough</button>
+                    <button type="button" [class.active]="n.ApprovalRule === 'All'" (click)="n.ApprovalRule = 'All'; markDirty()">Everyone must approve</button>
+                  </div>
+                }
+              }
+              @case ('Condition') {
+                <label class="form-label mt-3">Check if</label>
+                <div class="d-flex gap-2">
+                  <select class="form-select form-select-sm" [(ngModel)]="n.Field" (ngModelChange)="markDirty()" aria-label="Field">
+                    @for (f of conditionFields; track f) { <option [value]="f">{{ f }}</option> }
+                  </select>
+                  <select class="form-select form-select-sm" style="max-width: 82px" [(ngModel)]="n.Operator" (ngModelChange)="markDirty()" aria-label="Operator">
+                    @for (o of operators; track o) { <option [value]="o">{{ o }}</option> }
+                  </select>
+                </div>
+                <input class="form-control form-control-sm mt-2" [(ngModel)]="n.Value" (ngModelChange)="markDirty()" placeholder="Value" aria-label="Value">
+                @if (!n.Value) { <div class="text-danger fs-13">Value is Required</div> }
+                <small class="text-gray d-block mt-2">Goes the <b class="text-success">Yes</b> way when {{ n.Field }} {{ n.Operator }} {{ n.Value || '…' }}, otherwise the <b class="text-danger">No</b> way.</small>
+              }
+              @case ('Notification') {
+                <label class="form-label mt-3">Send to</label>
+                <select class="form-select form-select-sm" [(ngModel)]="n.NotifyTarget" (ngModelChange)="n.NotifyID = null; markDirty()">
+                  @for (t of ['Requester', 'Assignee', 'Manager', 'User', 'Role']; track t) { <option [value]="t">{{ t === 'User' ? 'A person' : t === 'Role' ? 'A role' : t }}</option> }
+                </select>
+                @if (n.NotifyTarget === 'User') {
+                  <ng-select class="mt-2" [items]="ui.users" bindLabel="Name" bindValue="ID" [(ngModel)]="n.NotifyID" (ngModelChange)="markDirty()" placeholder="Select person" appendTo="body"></ng-select>
+                } @else if (n.NotifyTarget === 'Role') {
+                  <select class="form-select form-select-sm mt-2" [(ngModel)]="n.NotifyID" (ngModelChange)="markDirty()">
+                    <option [ngValue]="null">Select role</option>
+                    @for (r of ui.roles; track r.ID) { <option [ngValue]="r.ID">{{ r.Name }}</option> }
+                  </select>
+                }
+                <label class="form-label mt-3">How</label>
+                <select class="form-select form-select-sm" [(ngModel)]="n.Channel" (ngModelChange)="markDirty()">
+                  @for (c of ['Email', 'In-app', 'Email + In-app']; track c) { <option [value]="c">{{ c }}</option> }
+                </select>
+                <label class="form-label mt-3">Message</label>
+                <textarea class="form-control form-control-sm" rows="3" [(ngModel)]="n.Message" (ngModelChange)="markDirty()" [placeholder]="msgPlaceholder"></textarea>
+              }
+              @case ('End') {
+                <label class="form-label mt-3">Result</label>
+                <select class="form-select form-select-sm" [(ngModel)]="n.Outcome" (ngModelChange)="markDirty()">
+                  @for (o of ['Completed', 'Approved', 'Rejected', 'Cancelled']; track o) { <option [value]="o">{{ o }}</option> }
+                </select>
+              }
+            }
+
+            @if (n.Type !== 'End') {
+              <div class="props-sec">Goes next to</div>
+              @for (e of outgoing(n); track e.ID) {
+                <div class="tr-row" [class.sel]="isSel('edge', e.ID)">
+                  <div class="d-flex align-items-center gap-2">
+                    @if (n.Type === 'Condition') {
+                      <select class="form-select form-select-sm" style="max-width: 72px" [(ngModel)]="e.Branch" (ngModelChange)="onBranchChange(e)" aria-label="Yes or No">
+                        <option value="Yes">Yes</option><option value="No">No</option>
+                      </select>
+                    }
+                    <a class="fw-600 fs-13 flex-grow-1 text-truncate cursor-pointer" (click)="selectNode(e.To)">{{ nodeName(e.To) }}</a>
+                    <button type="button" class="icon-btn danger sm" title="Remove this link" (click)="deleteEdge(e)"><fa-icon [icon]="faTrash" /></button>
+                  </div>
+                </div>
+              } @empty {
+                <small class="text-gray d-block">Not connected to anything yet.</small>
+              }
+              @if (connectOptions(n).length) {
+                <div class="d-flex gap-2 mt-2">
+                  <select class="form-select form-select-sm" [(ngModel)]="connectTarget" aria-label="Connect to">
+                    <option value="">Connect to…</option>
+                    @for (o of connectOptions(n); track o.ID) { <option [value]="o.ID">{{ o.Name }}</option> }
+                  </select>
+                  <button type="button" class="btn btn-sm btn-outline" [disabled]="!connectTarget" (click)="connectSelectedTo()">Add</button>
+                </div>
+              }
+              <button type="button" class="btn btn-sm btn-link px-0 mt-1 text-decoration-none" (click)="startConnect(n)"><fa-icon [icon]="faLink" /> Pick on the canvas</button>
+            }
+            @if (incoming(n).length) {
+              <div class="props-sec">Comes from</div>
+              <div class="fs-13 text-gray">
+                @for (e of incoming(n); track e.ID; let last = $last) { {{ nodeName(e.From) }}{{ last ? '' : ', ' }} }
+              </div>
+            }
+
+            <div class="d-flex gap-2 mt-4">
+              @if (n.Type !== 'Start') {
+                <button type="button" class="btn btn-sm btn-outline" (click)="duplicateNode(n)"><fa-icon [icon]="faCopy" class="me-1" />Duplicate</button>
+              }
+              <button type="button" class="btn btn-sm btn-red" (click)="deleteNode(n)"><fa-icon [icon]="faTrash" class="me-1" />Delete</button>
+            </div>
+          </div>
+        } @else if (selEdge; as e) {
+          <div class="props-head">
+            <span class="n-icon t-edge"><fa-icon [icon]="faLink" /></span>
+            <div class="flex-grow-1 min-w-0">
+              <div class="fw-600 text-black">Link</div>
+              <small class="text-gray">From <a class="cursor-pointer" (click)="selectNode(e.From)">{{ nodeName(e.From) }}</a> to <a class="cursor-pointer" (click)="selectNode(e.To)">{{ nodeName(e.To) }}</a></small>
+            </div>
+            <button type="button" class="icon-btn" title="Close" (click)="selected = null"><fa-icon [icon]="faClose" /></button>
+          </div>
+          <div class="props-body">
+            @if (node(e.From)?.Type === 'Condition') {
+              <label class="form-label">Used when the answer is</label>
+              <div class="seg">
+                <button type="button" [class.active]="e.Branch === 'Yes'" (click)="e.Branch = 'Yes'; onBranchChange(e)">Yes</button>
+                <button type="button" [class.active]="e.Branch === 'No'" (click)="e.Branch = 'No'; onBranchChange(e)">No</button>
+              </div>
+            }
+            <label class="form-label mt-3">Button text (optional)</label>
+            <input class="form-control form-control-sm" [(ngModel)]="e.Label" (ngModelChange)="markDirty()" placeholder="e.g. Approve, Send to QA">
+            <small class="text-gray d-block mt-1">People click this button to move the item along.</small>
+            <button type="button" class="btn btn-sm btn-red mt-4" (click)="deleteEdge(e)"><fa-icon [icon]="faTrash" class="me-1" />Delete link</button>
+          </div>
+        } @else {
+          <div class="props-head">
+            <div class="flex-grow-1">
+              <div class="fw-600 text-black">Workflow details</div>
+              <small class="text-gray">Click a block or arrow to change it.</small>
+            </div>
+          </div>
+          <div class="props-body">
+            <label class="form-label required">Name</label>
+            <input class="form-control form-control-sm" [(ngModel)]="wf.Name" (ngModelChange)="markDirty()" maxlength="80">
+            @if (!wf.Name.trim()) { <div class="text-danger fs-13">Workflow Name is Required</div> }
+            <label class="form-label mt-3 required">Used for</label>
+            <select class="form-select form-select-sm" [(ngModel)]="wf.AppliesTo" (ngModelChange)="markDirty()">
+              @for (e of ui.entities; track e) { <option [value]="e">{{ e }}</option> }
+            </select>
+            <label class="form-label mt-3">Projects using it</label>
+            <ng-select [items]="ui.projects" bindLabel="Name" bindValue="ID" [multiple]="true" [(ngModel)]="wf.ProjectIDs" (ngModelChange)="markDirty()" placeholder="None yet" appendTo="body"></ng-select>
+
+            <button type="button" class="btn btn-sm btn-link px-0 mt-3 text-decoration-none" (click)="showMore = !showMore">{{ showMore ? 'Hide' : 'More options' }}</button>
+            @if (showMore) {
+              <label class="form-label mt-2">Description</label>
+              <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="wf.Description" (ngModelChange)="markDirty()"></textarea>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</div>

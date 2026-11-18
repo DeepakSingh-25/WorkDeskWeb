@@ -1,0 +1,12 @@
+<div class="agile-nav d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 mb-3">
+  <nav class="project-tabs">
+    @for (l of links; track l.path) {
+      <a [routerLink]="l.path" [queryParams]="{ project: projectID }" routerLinkActive="active">{{ l.label }}</a>
+    }
+  </nav>
+  <div class="project-picker d-flex align-items-center gap-2">
+    <span class="text-gray fs-13">Project</span>
+    <ng-select class="ng-select-sm" [items]="projects" bindLabel="Name" bindValue="ID" [clearable]="false" [searchable]="true"
+      [ngModel]="projectID" (ngModelChange)="onProjectChange($event)" aria-label="Project"></ng-select>
+  </div>
+</div>

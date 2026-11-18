@@ -1,0 +1,173 @@
+/* ================= Shared PM building blocks ================= */
+/* Applies to #project, #task and any page wrapper with class="pm-page" (team, agile, workflow, reports, settings, workspace) */
+:is(#project, #task, .pm-page) .card-box{background: #fff; border: 1px solid #CAD8FF; border-radius: 10px;}
+:is(#project, #task, .pm-page) .card-box .card-head{padding: 14px 20px; border-bottom: 1px solid #CAD8FF; display: flex; align-items: center; justify-content: space-between; gap: 10px;}
+:is(#project, #task, .pm-page) .card-box .card-head h5{font-size: 16px; font-weight: 600; color: #000; margin: 0;}
+:is(#project, #task, .pm-page) .card-box .card-body{padding: 20px;}
+:is(#project, #task, .pm-page) .text-gray{color: #7B7B7B;}
+:is(#project, #task, .pm-page) .text-black{color: #000; font-weight: 500;}
+:is(#project, #task, .pm-page) .fs-13{font-size: 13px;}
+:is(#project, #task, .pm-page) .fw-600{font-weight: 600;}
+:is(#project, #task, .pm-page) .breadcrumb-lite{font-size: 13px; color: #7B7B7B;}
+:is(#project, #task, .pm-page) .breadcrumb-lite a{color: #0043E0;}
+:is(#project, #task, .pm-page) .btn-outline{border: 1px solid #0043E0; color: #0043E0; border-radius: 10px; padding: 8px 18px; display: flex; align-items: center; background: #fff;}
+:is(#project, #task, .pm-page) .btn-outline:hover{background: #EAF0FF;}
+:is(#project, #task, .pm-page) .btn-red{border: 1px solid #DB0000; border-radius: 10px; padding: 8px 18px; display: flex; align-items: center; color: #DB0000; background: #fff;}
+:is(#project, #task, .pm-page) .btn-red:hover{background: #FFF1F1;}
+:is(#project, #task, .pm-page) .icon-btn{width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; color: #0043E0;}
+:is(#project, #task, .pm-page) .icon-btn:hover{background: #EAF0FF;}
+:is(#project, #task, .pm-page) .icon-btn.danger{color: #FB6240;}
+:is(#project, #task, .pm-page) .icon-btn.danger:hover{background: #FFF1EE;}
+:is(#project, #task, .pm-page) .icon-btn.success{color: #029848;}
+:is(#project, #task, .pm-page) .icon-btn.success:hover{background: #E8F7EF;}
+
+/* stat boxes - reuse .dashboard-box, smaller text */
+:is(#project, #task, .pm-page) .dashboard-box h5{font-size: 24px; margin-bottom: 2px;}
+:is(#project, #task, .pm-page) .dashboard-box p{font-size: 14px;}
+:is(#project, #task, .pm-page) .dashboard-box .stat-icon{font-size: 30px; color: #0043E0; opacity: .85;}
+:is(#project, #task, .pm-page) .dashboard-box.box-2 .stat-icon{color: #FB6240;}
+:is(#project, #task, .pm-page) .dashboard-box.box-3 .stat-icon{color: #029848;}
+:is(#project, #task, .pm-page) .dashboard-box.box-4 .stat-icon{color: #ffa529;}
+
+/* status / priority / health pills */
+:is(#project, #task, .pm-page) .pill{display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: 50px; font-size: 12px; font-weight: 500; white-space: nowrap;}
+:is(#project, #task, .pm-page) .pill .dot{width: 7px; height: 7px; border-radius: 50%; background: currentColor;}
+:is(#project, #task, .pm-page) .st-notstarted{background: #EEF0F4; color: #5B6475;}
+:is(#project, #task, .pm-page) .st-progress{background: #EAF0FF; color: #0043E0;}
+:is(#project, #task, .pm-page) .st-hold{background: #FFF4E0; color: #C77800;}
+:is(#project, #task, .pm-page) .st-completed{background: #E8F7EF; color: #029848;}
+:is(#project, #task, .pm-page) .st-cancelled, :is(#project, #task, .pm-page) .st-delayed{background: #FFEDEA; color: #E0401C;}
+:is(#project, #task, .pm-page) .st-pending{background: #EEF0F4; color: #5B6475;}
+:is(#project, #task, .pm-page) .pr-low{color: #029848;}
+:is(#project, #task, .pm-page) .pr-medium{color: #0043E0;}
+:is(#project, #task, .pm-page) .pr-high{color: #C77800;}
+:is(#project, #task, .pm-page) .pr-critical{color: #E0401C;}
+:is(#project, #task, .pm-page) .hl-ontrack{background: #E8F7EF; color: #029848;}
+:is(#project, #task, .pm-page) .hl-atrisk{background: #FFF4E0; color: #C77800;}
+:is(#project, #task, .pm-page) .hl-offtrack{background: #FFEDEA; color: #E0401C;}
+
+/* progress bar */
+:is(#project, #task, .pm-page) .progress-thin{height: 6px; border-radius: 10px; background: #E6ECFA; overflow: hidden; min-width: 90px;}
+:is(#project, #task, .pm-page) .progress-thin .bar{height: 100%; border-radius: 10px; background: #0043E0; transition: width .3s;}
+:is(#project, #task, .pm-page) .progress-thin .bar.green{background: #029848;}
+:is(#project, #task, .pm-page) .progress-thin .bar.orange{background: #ffa529;}
+:is(#project, #task, .pm-page) .progress-thin .bar.red{background: #FB6240;}
+
+/* avatars */
+:is(#project, #task, .pm-page) .avatar{width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; background: #0043E0; border: 2px solid #fff; flex-shrink: 0;}
+:is(#project, #task, .pm-page) .avatar.lg{width: 48px; height: 48px; font-size: 16px;}
+:is(#project, #task, .pm-page) .avatar-stack{display: flex;}
+:is(#project, #task, .pm-page) .avatar-stack .avatar{margin-left: -10px;}
+:is(#project, #task, .pm-page) .avatar-stack .avatar:first-child{margin-left: 0;}
+:is(#project, #task, .pm-page) .av-0{background: #0043E0;} :is(#project, #task, .pm-page) .av-1{background: #029848;} :is(#project, #task, .pm-page) .av-2{background: #FB6240;}
+:is(#project, #task, .pm-page) .av-3{background: #ffa529;} :is(#project, #task, .pm-page) .av-4{background: #7A3FE4;} :is(#project, #task, .pm-page) .av-5{background: #0E9AA7;}
+
+/* view toggle */
+:is(#project, #task, .pm-page) .view-toggle{border: 1px solid #CAD8FF; border-radius: 10px; overflow: hidden; display: flex; background: #fff;}
+:is(#project, #task, .pm-page) .view-toggle button{border: none; background: transparent; padding: 6px 12px; color: #6F6F6F;}
+:is(#project, #task, .pm-page) .view-toggle button.active{background: #0043E0; color: #fff;}
+:is(#project, #task, .pm-page) .status-filter{min-width: 170px;}
+
+/* grid cards */
+:is(#project, #task, .pm-page) .project-card{background: #fff; border: 1px solid #CAD8FF; border-radius: 10px; padding: 18px; height: 100%; display: flex; flex-direction: column; gap: 12px; transition: box-shadow .2s, transform .2s; cursor: pointer;}
+:is(#project, #task, .pm-page) .project-card:hover{box-shadow: 0 8px 24px rgba(0, 67, 224, .08); transform: translateY(-2px);}
+:is(#project, #task, .pm-page) .project-card h6{font-size: 16px; font-weight: 600; color: #000; margin: 0;}
+
+/* table link */
+:is(#project, #task, .pm-page) .link-name{color: #000; font-weight: 500; cursor: pointer;}
+:is(#project, #task, .pm-page) .link-name:hover{color: #0043E0;}
+
+/* form sections */
+:is(#project, #task, .pm-page) .form-label{color: #000; font-weight: 500;}
+:is(#project, #task, .pm-page) .required::after{content: ' *'; color: #DB0000;}
+:is(#project, #task, .pm-page) .form-control, :is(#project, #task, .pm-page) .form-select{border-radius: 8px; min-height: 40px;}
+:is(#project, #task, .pm-page) .form-control:focus, :is(#project, #task, .pm-page) .form-select:focus{box-shadow: none; border-color: #0043E0;}
+:is(#project, #task, .pm-page) .section-title{font-size: 15px; font-weight: 600; color: #000; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;}
+:is(#project, #task, .pm-page) .section-title .num{width: 26px; height: 26px; border-radius: 50%; background: #EAF0FF; color: #0043E0; font-size: 13px; display: inline-flex; align-items: center; justify-content: center;}
+:is(#project, #task, .pm-page) .sticky-actions{position: sticky; bottom: 0; background: #fff; border-top: 1px solid #CAD8FF; padding: 14px 20px; border-radius: 0 0 10px 10px; z-index: 2;}
+
+/* details header + tabs */
+:is(#project, #task, .pm-page) .details-head{background: #fff; border-bottom: 1px solid #CAD8FF;}
+:is(#project, #task, .pm-page) .project-tabs{display: flex; gap: 28px; overflow-x: auto; scrollbar-width: none; white-space: nowrap;}
+:is(#project, #task, .pm-page) .project-tabs a{padding: 12px 0 10px; color: #000; font-weight: 500; font-size: 15px; border-bottom: 2px solid transparent; cursor: pointer;}
+:is(#project, #task, .pm-page) .project-tabs a:hover, :is(#project, #task, .pm-page) .project-tabs a.active{color: #0043E0; border-bottom-color: #0043E0;}
+:is(#project, #task, .pm-page) .meta-item .label{font-size: 12px; color: #7B7B7B; margin-bottom: 2px;}
+:is(#project, #task, .pm-page) .meta-item .value{font-size: 14px; color: #000; font-weight: 500;}
+
+/* milestones */
+:is(#project, #task, .pm-page) .ms-list{position: relative;}
+:is(#project, #task, .pm-page) .ms-item{position: relative; padding-left: 36px; padding-bottom: 18px;}
+:is(#project, #task, .pm-page) .ms-item::before{content: ''; position: absolute; left: 11px; top: 26px; bottom: 0; width: 2px; background: #CAD8FF;}
+:is(#project, #task, .pm-page) .ms-item:last-child::before{display: none;}
+:is(#project, #task, .pm-page) .ms-item .ms-dot{position: absolute; left: 0; top: 4px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #CAD8FF; background: #fff;}
+:is(#project, #task, .pm-page) .ms-item.done .ms-dot{border-color: #029848; background: #029848;}
+:is(#project, #task, .pm-page) .ms-item.active .ms-dot{border-color: #0043E0;}
+:is(#project, #task, .pm-page) .ms-item.late .ms-dot{border-color: #FB6240;}
+
+/* gantt */
+:is(#project, #task, .pm-page) .gantt{display: flex; border: 1px solid #CAD8FF; border-radius: 10px; overflow: hidden; background: #fff;}
+:is(#project, #task, .pm-page) .gantt-left{flex: 0 0 260px; border-right: 1px solid #CAD8FF; background: #fff; z-index: 1;}
+:is(#project, #task, .pm-page) .gantt-right{flex: 1; overflow-x: auto; position: relative;}
+:is(#project, #task, .pm-page) .gantt-canvas{position: relative;}
+:is(#project, #task, .pm-page) .gantt-row{height: 44px; display: flex; align-items: center; border-bottom: 1px solid #EEF2FC;}
+:is(#project, #task, .pm-page) .gantt-left .gantt-row{padding: 0 14px; gap: 8px; overflow: hidden;}
+:is(#project, #task, .pm-page) .gantt-left .gantt-row.group{background: #F6FAFF; font-weight: 600; color: #000;}
+:is(#project, #task, .pm-page) .gantt-left .gantt-row.task{padding-left: 34px; color: #333; font-size: 13px;}
+:is(#project, #task, .pm-page) .gantt-right .gantt-row.group{background: #F6FAFF;}
+:is(#project, #task, .pm-page) .gantt-header{height: 52px; background: #EAF0FF; border-bottom: 1px solid #CAD8FF; font-weight: 600; color: #000; font-size: 13px;}
+:is(#project, #task, .pm-page) .gantt-left .gantt-header{display: flex; align-items: center; padding: 0 14px;}
+:is(#project, #task, .pm-page) .gantt-scale{position: relative; height: 52px;}
+:is(#project, #task, .pm-page) .gantt-scale .tick{position: absolute; top: 0; bottom: 0; border-left: 1px solid #CAD8FF; padding: 8px 6px; font-size: 12px; white-space: nowrap; overflow: hidden;}
+:is(#project, #task, .pm-page) .gantt-scale .tick small{display: block; color: #7B7B7B; font-weight: 400;}
+:is(#project, #task, .pm-page) .gantt-grid-line{position: absolute; top: 52px; bottom: 0; border-left: 1px dashed #E6ECFA; pointer-events: none;}
+:is(#project, #task, .pm-page) .gantt-today{position: absolute; top: 52px; bottom: 0; border-left: 2px solid #FB6240; z-index: 2; pointer-events: none;}
+:is(#project, #task, .pm-page) .gantt-today span{position: absolute; top: -2px; left: -1px; transform: translateX(-50%); background: #FB6240; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 4px; white-space: nowrap;}
+:is(#project, #task, .pm-page) .gantt-bar{position: absolute; height: 20px; border-radius: 6px; background: #CFDCFF; overflow: hidden; cursor: default; min-width: 4px;}
+:is(#project, #task, .pm-page) .gantt-bar .fill{height: 100%; background: #0043E0;}
+:is(#project, #task, .pm-page) .gantt-bar.group{height: 12px; background: #D9D9E3; border-radius: 3px;}
+:is(#project, #task, .pm-page) .gantt-bar.group .fill{background: #071C4D;}
+:is(#project, #task, .pm-page) .gantt-bar.done{background: #BFE8D2;}
+:is(#project, #task, .pm-page) .gantt-bar.done .fill{background: #029848;}
+:is(#project, #task, .pm-page) .gantt-bar.late{background: #FFD5CB;}
+:is(#project, #task, .pm-page) .gantt-bar.late .fill{background: #FB6240;}
+:is(#project, #task, .pm-page) .gantt-bar-wrap{position: relative; height: 44px; border-bottom: 1px solid #EEF2FC;}
+:is(#project, #task, .pm-page) .gantt-bar-wrap.group{background: #F6FAFF;}
+:is(#project, #task, .pm-page) .gantt-bar-wrap .gantt-bar{top: 12px;}
+:is(#project, #task, .pm-page) .gantt-bar-wrap.group .gantt-bar{top: 16px;}
+:is(#project, #task, .pm-page) .gantt-diamond{position: absolute; top: 14px; width: 14px; height: 14px; background: #ffa529; transform: rotate(45deg); margin-left: -7px; border-radius: 2px; z-index: 1;}
+:is(#project, #task, .pm-page) .gantt-legend{display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: #555;}
+:is(#project, #task, .pm-page) .gantt-legend i{display: inline-block; width: 14px; height: 8px; border-radius: 3px; margin-right: 6px; vertical-align: middle;}
+
+/* health */
+:is(#project, #task, .pm-page) .health-ring{width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative;}
+:is(#project, #task, .pm-page) .health-ring .inner{width: 108px; height: 108px; border-radius: 50%; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;}
+:is(#project, #task, .pm-page) .health-ring .inner b{font-size: 26px; color: #000;}
+:is(#project, #task, .pm-page) .health-dim{border: 1px solid #EEF2FC; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;}
+:is(#project, #task, .pm-page) .risk-item{padding: 12px 0; border-bottom: 1px solid #EEF2FC;}
+:is(#project, #task, .pm-page) .risk-item:last-child{border-bottom: none;}
+
+/* settings */
+:is(#project, #task, .pm-page) .setting-row{display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid #EEF2FC;}
+:is(#project, #task, .pm-page) .setting-row:last-child{border-bottom: none;}
+:is(#project, #task, .pm-page) .setting-row p{margin: 0;}
+:is(#project, #task, .pm-page) .form-switch .form-check-input{width: 2.6em; height: 1.4em; cursor: pointer;}
+:is(#project, #task, .pm-page) .form-switch .form-check-input:checked{background-color: #0043E0; border-color: #0043E0;}
+:is(#project, #task, .pm-page) .form-switch .form-check-input:focus{box-shadow: none;}
+:is(#project, #task, .pm-page) .day-chip{border: 1px solid #CAD8FF; border-radius: 8px; padding: 6px 12px; cursor: pointer; user-select: none; background: #fff;}
+:is(#project, #task, .pm-page) .day-chip.active{background: #0043E0; border-color: #0043E0; color: #fff;}
+:is(#project, #task, .pm-page) .danger-zone{border-color: #FFC9BD;}
+:is(#project, #task, .pm-page) .danger-zone .card-head{background: #FFF6F4; border-radius: 10px 10px 0 0; border-bottom-color: #FFC9BD;}
+
+/* ng-select inside project forms */
+:is(#project, #task, .pm-page) .ng-select .ng-select-container{border-radius: 8px; min-height: 40px;}
+
+/* offcanvas width same as ticket */
+:is(#project, #task, .pm-page) .offcanvas-end{width: 520px;}
+:is(#project, #task, .pm-page) .offcanvas-header{padding: 30px 30px 16px 30px; background-color: #F6FAFF;}
+:is(#project, #task, .pm-page) .offcanvas-body{padding: 20px 30px 30px 30px;}
+
+@media (max-width: 767px){
+    :is(#project, #task, .pm-page) .gantt-left{flex-basis: 170px;}
+    :is(#project, #task, .pm-page) .project-tabs{gap: 18px;}
+    :is(#project, #task, .pm-page) .offcanvas-end{width: 100% !important;}
+}

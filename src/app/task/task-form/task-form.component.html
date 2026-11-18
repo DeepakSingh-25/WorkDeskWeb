@@ -1,0 +1,150 @@
+<div class="dashboard-content p-3 p-sm-4 mt-60" id="task">
+  <div class="breadcrumb-lite mb-1">
+    <a routerLink="/tasks">Tasks</a> /
+    @if (AddEdit === 'E' && task) { <a [routerLink]="['/tasks']" [queryParams]="{ task: task.ID }">{{ ui.stripKey(task.Title) }}</a> / Edit } @else { Create Task }
+  </div>
+  <div class="d-flex justify-content-between align-items-center mb-4 gap-2 flex-wrap">
+    <div>
+      <h2 class="fw-bold mb-0">{{ AddEdit === 'E' ? 'Edit Task' : 'Create Task' }}</h2>
+      <p class="text-gray mb-0 fs-13">{{ AddEdit === 'E' ? 'Change the details of this task.' : 'Fill in the basics. Everything else is optional.' }}</p>
+    </div>
+    @if (AddEdit === 'E' && taskForm.dirty) { <span class="pill st-hold">Unsaved changes</span> }
+  </div>
+
+  <form [formGroup]="taskForm" (ngSubmit)="onSave()">
+    <div class="row row-gap-3">
+      <div class="col-xl-8">
+        <div class="card-box">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-5 mb-3">
+                <label for="tProject" class="form-label required">Project</label>
+                <ng-select formControlName="drpProjectID" labelForId="tProject" placeholder="Select Project" [items]="drpProjectData" bindLabel="Name" bindValue="ID"></ng-select>
+                @if (isInvalid('drpProjectID')) { <div class="text-danger fs-13">Project is Required</div> }
+              </div>
+              <div class="col-md-7 mb-3">
+                <label for="tTitle" class="form-label required">Title</label>
+                <input type="text" id="tTitle" class="form-control" formControlName="txtTitle" placeholder="What needs to be done?" maxlength="150" autocomplete="off">
+                @if (isInvalid('txtTitle')) { <div class="text-danger fs-13">Title is Required</div> }
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="tAssignee" class="form-label d-flex justify-content-between">Assignee
+                  <a href="javascript:void(0)" class="text-primary fs-13 fw-normal" (click)="assignToMe()">Assign to me</a></label>
+                <ng-select formControlName="drpAssigneeID" labelForId="tAssignee" placeholder="Unassigned" [items]="drpUserData" bindLabel="Name" bindValue="ID"></ng-select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="tDue" class="form-label">Due Date</label>
+                <input type="date" id="tDue" class="form-control" formControlName="txtDueDate" [min]="taskForm.value.txtStartDate">
+              </div>
+              <div class="col-6 mb-3">
+                <label for="tPriority" class="form-label required">Priority</label>
+                <select id="tPriority" class="form-select" formControlName="drpPriority">
+                  @for (p of priorities; track p) { <option [value]="p">{{ p }}</option> }
+                </select>
+              </div>
+              <div class="col-6 mb-3">
+                <label for="tStatus" class="form-label required">Status</label>
+                <select id="tStatus" class="form-select" formControlName="drpStatus">
+                  @for (s of ui.taskStatuses; track s) { <option [value]="s">{{ s }}</option> }
+                </select>
+              </div>
+              @if (taskForm.errors?.['dateRange']) { <div class="col-12 text-danger fs-13 mb-3 mt-n2">Due Date must be on or after Start Date</div> }
+
+              <div class="col-12 mb-3">
+                <button type="button" class="btn btn-outline btn-sm" (click)="showMore = !showMore" [attr.aria-expanded]="showMore">
+                  {{ showMore ? 'Hide more options' : 'More options' }}
+                </button>
+                @if (!showMore) { <span class="text-gray fs-13 ms-2">Description, start date, estimate, labels{{ AddEdit === 'A' ? ', checklist' : '' }}</span> }
+              </div>
+
+              @if (showMore) {
+                <div class="col-12 mb-3">
+                  <label for="tDesc" class="form-label">Description</label>
+                  <textarea id="tDesc" class="form-control" rows="5" formControlName="txtDescription" maxlength="3000"
+                    placeholder="What should be done and how will you know it is finished?"></textarea>
+                  <div class="text-end text-gray fs-13">{{ taskForm.value.txtDescription?.length || 0 }}/3000</div>
+                </div>
+                <div class="col-6 mb-3">
+                  <label for="tStart" class="form-label">Start Date</label>
+                  <input type="date" id="tStart" class="form-control" formControlName="txtStartDate">
+                </div>
+                <div class="col-6 mb-3">
+                  <label for="tEstimate" class="form-label">Estimate (hours)</label>
+                  <input type="number" id="tEstimate" class="form-control" formControlName="txtEstimate" min="0" max="999" step="0.5" placeholder="e.g. 8">
+                  @if (isInvalid('txtEstimate')) { <div class="text-danger fs-13">Enter 0 – 999 hours</div> }
+                </div>
+                <div class="col-12 mb-3">
+                  <label for="tLabels" class="form-label">Labels</label>
+                  <ng-select formControlName="drpLabels" labelForId="tLabels" placeholder="Add labels (type to create new)" [items]="drpLabelData"
+                    [multiple]="true" [addTag]="true" addTagText="Create label" [closeOnSelect]="false" appendTo="body"></ng-select>
+                </div>
+
+                @if (AddEdit === 'A') {
+                  <div class="col-12">
+                    <label class="form-label">Checklist</label>
+                    <div formArrayName="Subtasks">
+                      @for (c of subtasks.controls; track c; let i = $index) {
+                        <div class="subtask-input">
+                          <span class="text-gray">☐</span>
+                          <input type="text" class="form-control form-control-sm" [id]="'subtask' + i" [formControlName]="i" placeholder="Checklist item, press Enter for next" maxlength="150" (keydown.enter)="onSubtaskEnter(i, $event)">
+                          <button type="button" class="icon-btn danger" (click)="removeSubtask(i)" aria-label="Remove checklist item"><span class="icomoon icon-delete"></span></button>
+                        </div>
+                      }
+                    </div>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none ps-0 mt-1" (click)="addSubtask()">+ Add item</button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <div class="sticky-actions d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn btn-primary"><span class="icomoon icon-save me-2"></span> {{ AddEdit === 'E' ? 'Update' : 'Save' }}</button>
+            @if (AddEdit === 'A') {
+              <button type="button" class="btn btn-outline" (click)="onSave(false)">Save &amp; create another</button>
+            }
+            <button type="button" class="btn btn-success" (click)="resetForm()"><span class="icomoon icon-reset me-2"></span> Reset</button>
+            <button type="button" class="btn btn-danger" (click)="onCancel()"><span class="icomoon icon-cancel me-2"></span> Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-4 d-flex flex-column gap-3">
+        @if (AddEdit === 'E' && task) {
+          <div class="card-box">
+            <div class="card-head"><h5>About this task</h5></div>
+            <div class="card-body d-flex flex-column gap-2 fs-13">
+              <div class="d-flex justify-content-between"><span class="text-gray">Created by</span><span class="text-black">{{ task.ReporterName }}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-gray">Created</span><span class="text-black">{{ ui.ago(task.CreatedOn) }}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-gray">Last changed</span><span class="text-black">{{ ui.ago(task.UpdatedOn) }}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-gray">Time worked</span><span class="text-black">{{ ui.formatMinutes(task.LoggedMinutes || 0) }}</span></div>
+              <a [routerLink]="['/tasks', task.ID]" class="text-primary mt-2">Open full task page →</a>
+            </div>
+          </div>
+          <div class="card-box danger-zone">
+            <div class="card-head"><h5 class="text-danger">Delete task</h5></div>
+            <div class="card-body">
+              <small class="text-gray d-block mb-2">This also removes its checklist, comments, files and time entries.</small>
+              <button type="button" class="btn btn-danger" (click)="onDelete()"><span class="icomoon icon-delete me-2 delete-icon"></span> Delete Task</button>
+            </div>
+          </div>
+        } @else {
+          <div class="card-box">
+            <div class="card-head"><h5>Preview</h5></div>
+            <div class="card-body">
+              <div class="board-card preview-card">
+                <div class="title">{{ taskForm.value.txtTitle || 'Task title' }}</div>
+                <div class="d-flex justify-content-between align-items-center fs-13">
+                  <span class="pill" [ngClass]="ui.taskStatusClass(taskForm.value.drpStatus)">{{ taskForm.value.drpStatus }}</span>
+                  <span class="text-gray">{{ taskForm.value.txtDueDate ? ('Due ' + (taskForm.value.txtDueDate | date:'dd MMM')) : 'No due date' }}</span>
+                </div>
+              </div>
+              <p class="text-gray fs-13 mt-3 mb-0">After saving you can add comments, files and time from the task details.</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </form>
+</div>
